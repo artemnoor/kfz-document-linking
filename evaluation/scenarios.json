@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "scenarios": [
+    { "id": "indirect-link-no-shared-number", "documents": [], "focus": "A supported link exists without a directly matching document number." },
+    { "id": "organization-alias", "documents": [], "focus": "The same organization is described by different names." },
+    { "id": "contextual-link", "documents": [], "focus": "The relationship is established through document meaning and surrounding context." },
+    { "id": "amendment-changes-contract", "documents": [], "focus": "An addendum changes terms from an earlier agreement." },
+    { "id": "line-item-cross-document", "documents": [], "focus": "A KFZ row corresponds to an act item despite different wording." },
+    { "id": "same-amount-unrelated", "documents": [], "focus": "Unrelated documents happen to contain the same amount." },
+    { "id": "same-counterparty-different-operation", "documents": [], "focus": "Documents share a counterparty but describe different operations." },
+    { "id": "many-documents-one-contract", "documents": [], "focus": "Several documents relate to one agreement." },
+    { "id": "ambiguous-relationships", "documents": [], "focus": "Evidence supports multiple plausible links or direction is uncertain." },
+    { "id": "unlinked-documents", "documents": [], "focus": "Some documents have no supported relationship." }
+  ]
+}

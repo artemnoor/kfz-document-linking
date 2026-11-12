@@ -3,7 +3,7 @@
 Входной контракт сверяется с актуальным upstream репозиторием Structured Extraction; зафиксированный commit и schema version хранятся в `versions.json`. API принимает массив результатов либо envelope `{ "extraction": result }`. Неизвестные добавочные поля major 1 сохраняются.
 
 - `input.schema.json` — совместимый вход Structured Extraction 1.2.0.
-- `output.schema.json` — расширяемый граф Document Linking 1.1.0. `relationship_type` — открытая строка; перечисление типов связей намеренно отсутствует.
+- `output.schema.json` — расширяемый граф Document Linking 1.2.0. `relationship_type` — открытая строка; недействительные технически предложения хранятся в `link_validation_diagnostics`, отдельно от графа.
 - `../prompts/document-linking-system.md` — системная инструкция модели.
 - `../fixtures/upstream-structured-extraction-1.2.0/` — реальные входы Structured Extraction 1.2.0.
 - `../fixtures/demo-structured-extraction/` — пользовательские сценарии интерфейса.

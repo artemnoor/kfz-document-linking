@@ -1,15 +1,16 @@
 import { Hono } from "hono";
-import { linkDocuments } from "../src/linking/link-resolver";
-import { GEMMA_MODEL } from "../src/linking/llm-matcher";
+import { buildLinkingResult, linkDocuments } from "../src/linking/link-resolver";
+import { analyzeDocumentSet, GEMMA_MODEL } from "../src/linking/llm-matcher";
 import { linkingOutputSchema } from "../src/contracts/output";
+import { validateInput } from "../src/contracts/input";
 import type { LinkingResult } from "../src/linking/types";
 import { enforceRateLimit, requireApiToken, sha256, type SecurityEnv } from "./security";
-import { findRunByIdempotency, readAnalysisProgress, readRun, readRunJson, saveAnalysisProgress, saveRun, updateDecision } from "./storage";
+import { claimJob, completeJob, createJob, failJob, findJobByIdempotency, findRunByIdempotency, queueJobAgain, readAnalysisProgress, readJob, readJobPayload, readRun, readRunJson, saveAnalysisProgress, saveJobProgress, saveRun, updateDecision, type AnalysisJobRow } from "./storage";
 
-type Env = SecurityEnv & { DB: D1Database; ASSETS: Fetcher; LLM_MAX_INPUT_TOKENS?: string };
+type Env = SecurityEnv & { DB: D1Database; ASSETS: Fetcher; ANALYSIS_QUEUE?: Queue<{ job_id: string }>; LLM_MAX_INPUT_TOKENS?: string };
 const app = new Hono<{ Bindings: Env }>();
 const MAX_BODY_BYTES = 3 * 1024 * 1024;
-app.get("/api/health", c => c.json({ status: "ok", service: "kfz-document-linking", contract_version: "1.1.0", llm: { provider: "Polza AI", model: GEMMA_MODEL, configured: c.env.LLM_ENABLED === "true" && !!c.env.POLZA_API_KEY } }));
+app.get("/api/health", c => c.json({ status: "ok", service: "kfz-document-linking", contract_version: "1.2.0", llm: { provider: "Polza AI", model: GEMMA_MODEL, configured: c.env.LLM_ENABLED === "true" && !!c.env.POLZA_API_KEY } }));
 app.use("/api/demo", requireApiToken);
 app.get("/api/demo", async c => {
   const limited = await enforceRateLimit(c, "read"); if (limited) return limited;
@@ -74,6 +75,88 @@ app.post("/api/linking-runs", async c => {
     return c.json(result, 201);
   } catch (error: any) { const status = Number.isInteger(error.status) ? error.status : 500; return c.json({ error: String(error.message ?? "Не удалось обработать пакет документов"), ...(status === 422 ? { diagnostics: error.diagnostics ?? [] } : {}) }, status); }
 });
+
+app.use("/api/linking-jobs", requireApiToken);
+app.use("/api/linking-jobs/*", requireApiToken);
+app.post("/api/linking-jobs", async c => {
+  const limited = await enforceRateLimit(c, "run"); if (limited) return limited;
+  if (!c.env.DB || !c.env.ANALYSIS_QUEUE) return c.json({ error: "Фоновая очередь недоступна" }, 503);
+  const parsed = await requestJson(c); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+  const body = parsed.body, documents = body?.documents ?? body;
+  if (!Array.isArray(documents) || documents.length > 50) return c.json({ error: "Ожидается массив не более чем из 50 документов" }, 422);
+  const checked = validateInput(documents); if (!checked.success) return c.json({ error: "Входные данные не соответствуют Structured Extraction 1.2.0", diagnostics: checked.diagnostics }, 422);
+  const payload = JSON.stringify({ documents: checked.documents }), payloadHash = await sha256(payload), rawKey = c.req.header("Idempotency-Key");
+  if (rawKey && (rawKey.length > 128 || !/^[\w.:-]+$/.test(rawKey))) return c.json({ error: "Некорректный Idempotency-Key" }, 400);
+  const key = rawKey ? await sha256(rawKey) : payloadHash, existing = await findJobByIdempotency(c.env.DB, key);
+  if (existing) return existing.payload_hash === payloadHash ? c.json({ job_id: existing.id, status: existing.status }, 200) : c.json({ error: "Idempotency-Key уже использован для другого содержимого" }, 409);
+  const id = crypto.randomUUID();
+  try {
+    await createJob(c.env.DB, { id, key, payloadHash, payload, now: new Date().toISOString() });
+    await c.env.ANALYSIS_QUEUE.send({ job_id: id });
+    return c.json({ job_id: id, status: "queued", status_url: `/api/linking-jobs/${id}` }, 202);
+  } catch (error: any) {
+    const retry = await findJobByIdempotency(c.env.DB, key);
+    if (retry?.payload_hash === payloadHash) { if (retry.status === "queued") await c.env.ANALYSIS_QUEUE.send({ job_id: retry.id }); return c.json({ job_id: retry.id, status: retry.status }, 200); }
+    return c.json({ error: String(error?.message ?? "Не удалось создать фоновое задание") }, 503);
+  }
+});
+app.get("/api/linking-jobs/:id", async c => {
+  const limited = await enforceRateLimit(c, "read"); if (limited) return limited;
+  if (!c.env.DB) return c.json({ error: "Хранилище недоступно" }, 503);
+  const job = await readJob(c.env.DB, c.req.param("id")); if (!job) return c.json({ error: "Задание не найдено" }, 404);
+  let progress: any = {}; try { progress = JSON.parse(job.progress_json); } catch { /* diagnostics below */ }
+  return c.json({ job_id: job.id, status: job.status, phase: progress.phase ?? (job.status === "queued" ? "queued" : job.status), progress: { completed_fragments: progress.completed_fragments?.length ?? 0, total_fragments: progress.total_fragments ?? null, model_calls: progress.calls ?? 0, input_tokens: progress.input_tokens ?? 0, output_tokens: progress.output_tokens ?? 0, cost_amount: progress.has_cost ? progress.cost_amount : null, cost_currency: progress.cost_currency ?? null, context_rounds: progress.context_rounds ?? 0 }, model: GEMMA_MODEL, provider: "Polza AI", attempts: job.attempts, last_error: job.last_error, run_id: job.run_id, result: job.status === "completed" ? JSON.parse(job.result_json ?? "null") : undefined, created_at: job.created_at, updated_at: job.updated_at });
+});
+app.post("/api/linking-jobs/:id/resume", async c => {
+  const limited = await enforceRateLimit(c, "run"); if (limited) return limited;
+  if (!c.env.DB || !c.env.ANALYSIS_QUEUE) return c.json({ error: "Фоновая очередь недоступна" }, 503);
+  const job = await readJob(c.env.DB, c.req.param("id")); if (!job) return c.json({ error: "Задание не найдено" }, 404);
+  if (job.status === "completed" || job.status === "queued" || job.status === "running" || job.status === "retrying") return c.json({ job_id: job.id, status: job.status }, 200);
+  await c.env.DB.prepare("UPDATE analysis_jobs SET status = 'queued', last_error = NULL, lease_expires_at_ms = NULL, updated_at = ? WHERE id = ? AND status = 'failed'").bind(new Date().toISOString(), job.id).run();
+  await c.env.ANALYSIS_QUEUE.send({ job_id: job.id });
+  return c.json({ job_id: job.id, status: "queued" }, 202);
+});
+
+async function consumeAnalysisQueue(batch: MessageBatch<{ job_id: string }>, env: Env) {
+  for (const message of batch.messages) {
+    const id = message.body?.job_id;
+    if (typeof id !== "string") { message.ack(); continue; }
+    try {
+      const job = await readJob(env.DB, id); if (!job || job.status === "completed" || job.status === "failed") { message.ack(); continue; }
+      const leaseMs = 240_000;
+      if (!await claimJob(env.DB, id, Date.now(), leaseMs)) { message.retry({ delaySeconds: 30 }); continue; }
+      const internalKey = `job:${id}`, recovered = await findRunByIdempotency(env.DB, internalKey);
+      if (recovered?.payload_hash === job.payload_hash) {
+        const result = JSON.parse(recovered.result_json) as LinkingResult;
+        await completeJob(env.DB, id, result.linking_run_id, result); message.ack(); continue;
+      }
+      const raw = JSON.parse(await readJobPayload(env.DB, job)), checked = validateInput(raw.documents);
+      if (!checked.success) throw Object.assign(new Error("Сохранённый пакет не прошёл повторную проверку контракта"), { status: 422, diagnostics: checked.diagnostics });
+      const promptResponse = await env.ASSETS.fetch(new Request("https://assets/prompts/document-linking-system.md"));
+      if (!promptResponse.ok) throw Object.assign(new Error("Не найдена системная инструкция document-linking-system.md"), { status: 503 });
+      let resumeProgress: any; try { resumeProgress = JSON.parse(job.progress_json); } catch { resumeProgress = undefined; }
+      const maxCalls = Math.min(52, Math.max(1, Number(env.LLM_MAX_CALLS_PER_RUN ?? 52))), timeoutMs = Math.min(120000, Math.max(1000, Number(env.LLM_TIMEOUT_MS ?? 90000)));
+      const analysis = await analyzeDocumentSet(checked.documents, { apiKey: env.POLZA_API_KEY ?? "", model: GEMMA_MODEL, timeoutMs, maxRunMs: Math.min(900000, Math.max(10000, Number(env.LLM_MAX_RUN_MS ?? 900000))), maxCalls, maxInputTokens: Math.min(230000, Math.max(1000, Number(env.LLM_MAX_INPUT_TOKENS ?? 180000))), systemPrompt: await promptResponse.text(), resumeProgress, maxModelCallsPerInvocation: 1, onProgress: state => saveJobProgress(env.DB, id, state, Date.now() + leaseMs) });
+      if (!analysis.complete) {
+        await queueJobAgain(env.DB, id);
+        // analyzeDocumentSet checkpoints state through onProgress; reload it for the next explicit queue message.
+        await env.ANALYSIS_QUEUE!.send({ job_id: id }); message.ack(); continue;
+      }
+      const result = buildLinkingResult(checked.documents, analysis);
+      const output = linkingOutputSchema.safeParse(result); if (!output.success) throw Object.assign(new Error("Ошибка внутреннего выходного контракта"), { status: 500 });
+      try { await saveRun(env.DB, result, internalKey, job.payload_hash); }
+      catch (error) { const prior = await findRunByIdempotency(env.DB, internalKey); if (prior?.payload_hash !== job.payload_hash) throw error; }
+      await completeJob(env.DB, id, result.linking_run_id, result); message.ack();
+    } catch (error: any) {
+      const status = Number(error?.status ?? 500), retryable = status === 402 || status === 429 || status >= 500 || status === 0;
+      await failJob(env.DB, id, String(error?.message ?? "Ошибка фонового анализа"), retryable);
+      if (retryable && message.attempts < 5) message.retry({ delaySeconds: Math.min(300, 5 * 2 ** Math.max(0, message.attempts - 1)) }); else message.ack();
+    }
+  }
+}
+async function consumeDeadLetter(batch: MessageBatch<{ job_id: string }>, env: Env) {
+  for (const message of batch.messages) { if (message.body?.job_id) await failJob(env.DB, message.body.job_id, "Исчерпаны повторные попытки Cloudflare Queue", false); message.ack(); }
+}
 app.get("/api/linking-runs/:id", async c => {
   const limited = await enforceRateLimit(c, "read"); if (limited) return limited;
   if (!c.env.DB) return c.json({ error: "Хранилище недоступно" }, 503);
@@ -95,4 +178,10 @@ app.patch("/api/linking-runs/:runId/links/:linkId", async c => {
   try { if (!await updateDecision(c.env.DB, oldJson, result, link)) return c.json({ error: "Результат изменён параллельным запросом; перечитайте его" }, 409); } catch { return c.json({ error: "Не удалось атомарно сохранить решение" }, 503); }
   return c.json(result);
 });
-export default app;
+export default {
+  fetch: (request: Request, env: Env, ctx?: ExecutionContext) => app.fetch(request, env, ctx as ExecutionContext),
+  async queue(batch: MessageBatch<{ job_id: string }>, env: Env) {
+    if (batch.queue.endsWith("dead-letter")) await consumeDeadLetter(batch, env);
+    else await consumeAnalysisQueue(batch, env);
+  },
+};

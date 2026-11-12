@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: KFZ Document Linking API
-  version: 1.1.0
+  version: 1.2.0
   description: LLM-first анализ всего комплекта результатов Structured Extraction через Gemma 4 26B A4B в Polza AI.
   security:
     - bearerAuth: []
@@ -38,7 +38,7 @@ paths:
                       type: array
                       items: { $ref: './contracts/input.schema.json' }
       responses:
-        '201': { description: Результат соответствует output contract 1.1.0, content: { application/json: { schema: { $ref: './contracts/output.schema.json' } } } }
+        '201': { description: Результат соответствует output contract 1.2.0, content: { application/json: { schema: { $ref: './contracts/output.schema.json' } } } }
         '200': { description: Повторный идемпотентный запрос возвращает сохранённый результат }
         '401': { description: Отсутствует или неверен bearer token }
         '409': { description: Idempotency-Key повторно использован с другим содержимым }

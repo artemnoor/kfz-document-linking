@@ -4,7 +4,7 @@
 
 ## Контракты
 
-Вход совместим с актуальной схемой Structured Extraction 1.2.0 (upstream SHA: `1e922e284805f2c1b343b4cb369813c8073b67dd`). Принимаются массив готовых JSON или API envelope `{ "extraction": result }`; все неизвестные дополнительные поля major 1 сохраняются. Точная схема этапа 4: [`contracts/output.schema.json`](contracts/output.schema.json), версия выхода 1.1.0. Тип отношения — свободная строка. Выход включает объяснения, доказательства и provenance, статус, направление, связи строк, не связанные документы, историю модели, токены, стоимость (если сообщает Polza) и время.
+Вход сверен с upstream Structured Extraction 1.2.0 (SHA: `1e922e284805f2c1b343b4cb369813c8073b67dd`). Принимаются массив готовых JSON или API envelope `{ "extraction": result }`; добавочные поля 1.x сохраняются на каждом вложенном уровне. Выход этапа 4 — контракт 1.2.0: тип отношения — свободная строка; недействительные технически предложения модели сохраняются отдельно в `link_validation_diagnostics` и не попадают в граф.
 
 Системная инструкция хранится в [`prompts/document-linking-system.md`](prompts/document-linking-system.md) и поставляется Worker как статический asset.
 
@@ -33,10 +33,21 @@ Polza `/api/v1/models` для указанного model ID сообщает con
 
 ## API
 
+- `POST /api/linking-jobs` — создать асинхронный анализ, отвечает `202` с `job_id`; ключ идемпотентности поддерживается.
+- `GET /api/linking-jobs/{id}` — получить фазу, прогресс, ошибку или готовый результат задания.
+- `POST /api/linking-jobs/{id}/resume` — поставить завершившееся ошибкой задание в очередь с сохранёнными checkpoint-ами.
 - `POST /api/linking-runs` — анализ массива до 50 документов, тело до 3 МиБ. Требует `Authorization: Bearer …`.
 - `GET /api/linking-runs/{id}` — получить сохранённый результат.
 - `PATCH /api/linking-runs/{runId}/links/{linkId}` — сохранить решение специалиста (`confirmed` / `rejected`).
 - `GET /api/health` — доступность, версия контракта и безопасный статус конфигурации модели.
+
+Фоновые задания выполняются Cloudflare Queues, а прогресс и части входного пакета хранятся в D1. Настройте producer/consumer и dead-letter queue из `wrangler.toml` для локальной или production среды перед запуском. Модель запрашивает исходные фрагменты по ID и индексам; сводки используются только как навигация и не принимаются доказательствами.
+
+Для нового production аккаунта создайте очереди один раз (`npx wrangler queues create kfz-document-analysis` и `npx wrangler queues create kfz-document-analysis-dead-letter`), затем примените миграции D1 и выполните deployment. Локальный Wrangler эмулирует очереди из окружения `local`.
+
+## Независимая оценка
+
+`evaluation/scenarios.json` задаёт набор сценариев, а `evaluation/annotations.template.json` и `evaluation/annotations.schema.json` — формат для независимой экспертной разметки. Набора gold labels сейчас нет, поэтому precision, recall, F1, направление, строки и provenance не измерены. После независимого заполнения разметки и файлов прогнозов запускайте `npm run eval:links -- evaluation/annotations.json`; отчёт считает false positives отдельно.
 
 Для deployment создайте D1, укажите его ID в `wrangler.toml`, примените миграции и задайте `API_BEARER_TOKEN` и `POLZA_API_KEY` секретами Wrangler. D1 хранит исходные JSON результата и связи; схема upstream в D1 не требуется.
 

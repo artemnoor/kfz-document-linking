@@ -5,3 +5,5 @@
 
 .analysis-summary{margin:14px 0 22px;padding:14px 16px;border:1px solid var(--line);background:var(--paper);display:grid;gap:7px;font-size:11px}.analysis-summary p{margin:0 0 5px;color:#4d5851;line-height:1.6}.analysis-summary>small{color:var(--muted);line-height:1.5}
 .analysis-warning{padding:10px 12px;border-left:3px solid #d99b32;background:#fff7e8;color:#79551d;border-radius:4px}
+.validation-diagnostic{margin:8px 0;padding:10px 12px;border:1px solid #e4cfaa;background:#fffaf0;border-radius:4px;color:#6d542d;font-size:11px}.validation-diagnostic summary{cursor:pointer;font-weight:600}.validation-diagnostic ul{padding-left:18px;line-height:1.5}.validation-diagnostic pre{max-height:220px;overflow:auto;white-space:pre-wrap;font:9px var(--mono);color:#647068}
+.analysis-progress{display:flex;align-items:center;gap:10px;padding:12px 15px;margin:0 0 16px;border:1px solid #c8d9ca;background:#edf4ee;color:#41644d;font-size:11px}.analysis-progress small{margin-left:auto;color:#718077;font:9px var(--mono)}@media(max-width:720px){.analysis-progress{align-items:flex-start;flex-wrap:wrap}.analysis-progress small{width:100%;margin-left:26px;overflow-wrap:anywhere}}

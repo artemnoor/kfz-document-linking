@@ -18,7 +18,7 @@ The smoke fixture is small and has no source provenance; it validates authentica
 
 - Path: local Cloudflare Worker `POST /api/linking-runs`, then `GET /api/linking-runs/{id}`.
 - Upstream fixtures: 6 documents, Structured Extraction 1.2.0.
-- Result: HTTP 201; persisted result was retrieved through GET; output contract 1.1.0.
+- Result: HTTP 201; persisted result was retrieved through GET; output contract 1.1.0 (before the current additive diagnostic contract update).
 - Model: `google/gemma-4-26b-a4b-it`, Polza AI only.
 - Strategy: document fragments analyzed by Gemma, then a whole-set relationship analysis.
 - Model/API calls recorded: 43; 1,305,073 input tokens and 119,022 output tokens.
@@ -26,9 +26,17 @@ The smoke fixture is small and has no source provenance; it validates authentica
 - Output: 10 document/row links, 5 with row IDs, 10 evidence items; no documents marked unlinked.
 - D1 checkpoint resume: the first attempt encountered a 90-second Polza request timeout after completed fragments had been saved. Retrying the same payload continued from those fragments. On successful persistence the checkpoint row was deleted.
 - Technical output validation and GET round-trip: passed.
-- Browser flow: uploaded two prepared extraction JSON files, ran the real analysis, saw the model's summary and the technical-validation warning, then downloaded and parsed the output JSON (contract 1.1.0).
+- Browser flow before this task: uploaded two prepared extraction JSON files, ran the real analysis, saw the model's summary and validation warning, then downloaded the output JSON (contract 1.1.0). Re-test against the new diagnostic UI after implementation.
 
 The number of discovered links is an observed model result, not a quality score. There is no independently labeled gold set in this repository, so precision, recall, F1, direction accuracy, and semantic line-match accuracy have not been measured. They require expert-validated expected links and provenance labels; mock responses are not used as evidence of model quality.
+
+## Asynchronous UI run: 2026-11-13
+
+- Path: browser upload of the real Structured Extraction 1.2.0 contract and addendum fixtures, `POST /api/linking-jobs`, Queue consumer, D1 persistence, status polling, result and evidence display.
+- Result: completed; the UI displayed the two input documents, two model-proposed relationships, source paths, provenance, model summary, and processing statistics.
+- Model: `google/gemma-4-26b-a4b-it`; one Polza call.
+- Usage: 46,728 input tokens, 1,301 output tokens; provider-reported cost 0.46998328 RUB.
+- This is a single functional integration observation, not a quality score. No 43+ call analysis was repeated.
 
 Run the live smoke test with a Windows process/user environment variable named `POLZA_API_KEY` or `POLZA_AI_API_KEY`:
 

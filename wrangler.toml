@@ -17,6 +17,19 @@ LLM_MAX_CALLS_PER_RUN = "52"
 LLM_TIMEOUT_MS = "90000"
 LLM_MAX_INPUT_TOKENS = "180000"
 LLM_MAX_RUN_MS = "900000"
+[[queues.producers]]
+binding = "ANALYSIS_QUEUE"
+queue = "kfz-document-analysis"
+[[queues.consumers]]
+queue = "kfz-document-analysis"
+max_batch_size = 1
+max_batch_timeout = 1
+max_retries = 5
+dead_letter_queue = "kfz-document-analysis-dead-letter"
+[[queues.consumers]]
+queue = "kfz-document-analysis-dead-letter"
+max_batch_size = 10
+max_batch_timeout = 5
 [env.local.vars]
 API_BEARER_TOKEN = "local-development-only-token"
 LLM_ENABLED = "true"
@@ -24,6 +37,19 @@ LLM_MAX_CALLS_PER_RUN = "52"
 LLM_TIMEOUT_MS = "90000"
 LLM_MAX_INPUT_TOKENS = "180000"
 LLM_MAX_RUN_MS = "900000"
+[[env.local.queues.producers]]
+binding = "ANALYSIS_QUEUE"
+queue = "kfz-document-analysis-local"
+[[env.local.queues.consumers]]
+queue = "kfz-document-analysis-local"
+max_batch_size = 1
+max_batch_timeout = 1
+max_retries = 5
+dead_letter_queue = "kfz-document-analysis-local-dead-letter"
+[[env.local.queues.consumers]]
+queue = "kfz-document-analysis-local-dead-letter"
+max_batch_size = 10
+max_batch_timeout = 5
 [[env.local.d1_databases]]
 binding = "DB"
 database_name = "kfz-document-linking"

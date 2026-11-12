@@ -11,6 +11,7 @@
     "test": "tsx --test tests/*.test.ts",
     "test:polza": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-polza.ps1",
     "test:contract": "tsx --test tests/contracts.test.ts",
+    "eval:links": "tsx scripts/evaluate-links.ts",
     "contracts:export": "tsx scripts/write-demo-fixtures.ts && tsx scripts/export-contract-schemas.ts",
     "demo:export": "tsx scripts/write-demo-result.ts",
     "deploy": "wrangler deploy",

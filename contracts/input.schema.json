@@ -577,9 +577,16 @@
           "type": "string"
         },
         "confidence": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "status": {
           "type": "string",
@@ -597,7 +604,75 @@
       ],
       "additionalProperties": {}
     },
-    "__schema6": {},
+    "__schema6": {
+      "type": "object",
+      "properties": {
+        "rules_executed": {
+          "type": "boolean"
+        },
+        "llm": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string"
+            },
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "called": {
+              "type": "boolean"
+            },
+            "response_validated": {
+              "type": "boolean"
+            },
+            "duration_ms": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "usage": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "validation_status": {
+              "type": "string"
+            },
+            "error": {
+              "anyOf": [
+                {},
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "provider",
+            "model",
+            "called",
+            "response_validated"
+          ],
+          "additionalProperties": {}
+        },
+        "parser_adapter": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "rules_executed",
+        "llm",
+        "parser_adapter"
+      ],
+      "additionalProperties": {}
+    },
     "__schema7": {
       "type": "string",
       "enum": [
@@ -680,7 +755,22 @@
             "conflict"
           ]
         },
-        "conflict": {},
+        "conflict": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string"
+            },
+            "rules": {},
+            "llm": {}
+          },
+          "required": [
+            "reason",
+            "rules",
+            "llm"
+          ],
+          "additionalProperties": false
+        },
         "corroborated_by": {
           "type": "string"
         }
@@ -751,7 +841,7 @@
                 "r",
                 "b"
               ],
-              "additionalProperties": false
+              "additionalProperties": {}
             },
             {
               "type": "null"
@@ -784,7 +874,7 @@
                 "height",
                 "unit"
               ],
-              "additionalProperties": false
+              "additionalProperties": {}
             },
             {
               "type": "null"
@@ -850,7 +940,7 @@
                 ]
               }
             },
-            "additionalProperties": false
+            "additionalProperties": {}
           }
         }
       },
