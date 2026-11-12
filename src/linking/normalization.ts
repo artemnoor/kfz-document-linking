@@ -1,0 +1,4 @@
+export function normalizeText(input: unknown): string { return String(input ?? "").toLocaleLowerCase("ru-RU").replace(/ё/g, "е").replace(/\u00a0|\u202f/g, " ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " "); }
+export function normalizeIdentifier(input: unknown): string { return normalizeText(input).replace(/^(договор|доп соглашение|д с|счет|сч|акт|номер|№)\s*/u, "").replace(/(?:^|\s)от\s+\d{1,2}\s+(?:\d{1,2}|\p{L}+)\s+\d{4}(?=\s|$)/gu, " ").replace(/\s+/g, ""); }
+export function valueOf(extracted: any): unknown { return extracted?.value ?? extracted?.source_value ?? null; }
+export function usable(extracted: any): boolean { return !!extracted && extracted.status === "extracted" && extracted.confidence !== null && extracted.confidence >= 0.55 && valueOf(extracted) !== null && String(valueOf(extracted)).trim() !== ""; }

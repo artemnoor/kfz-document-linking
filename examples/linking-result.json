@@ -1,0 +1,1855 @@
+{
+  "linking_run_id": "d7f5d9af-4f24-4a66-8243-f3894cc763ae",
+  "contract_version": "1.0.0",
+  "created_at": "2026-11-12T17:34:23.395Z",
+  "input_documents": [
+    {
+      "document_id": "act-2026-0424",
+      "extraction_id": "real-act-2026-0424-v1",
+      "document_type": "act",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1,
+      "input_hash": "6e0b7af2a894d113c4da7d9caf05bc2687f1c8cd3bff2d1c6847aa095aceb66a"
+    },
+    {
+      "document_id": "act-ambiguous-1",
+      "extraction_id": "ext-act-ambiguous-1-v1",
+      "document_type": "act",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1
+    },
+    {
+      "document_id": "addendum-2026-04",
+      "extraction_id": "real-addendum-2026-04-v1",
+      "document_type": "addendum",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1,
+      "input_hash": "c13b6aef2e3c363e7b08fb800ecc183cc6592dda462bcd9922d31d80af78db0b"
+    },
+    {
+      "document_id": "contract-2026-0315",
+      "extraction_id": "real-contract-2026-0315-v1",
+      "document_type": "contract",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1,
+      "input_hash": "610060c89d0816a29229663dfc26a2f4259847206a365aa297e5174c818cfee8"
+    },
+    {
+      "document_id": "contract-ambiguous-a",
+      "extraction_id": "ext-contract-ambiguous-a-v1",
+      "document_type": "contract",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1
+    },
+    {
+      "document_id": "contract-ambiguous-b",
+      "extraction_id": "ext-contract-ambiguous-b-v1",
+      "document_type": "contract",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1
+    },
+    {
+      "document_id": "invoice-2026-0408",
+      "extraction_id": "real-invoice-2026-0408-v1",
+      "document_type": "invoice",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1,
+      "input_hash": "69cbd404812019f6d7fc6d256d970adcd4ec02a5827438c25599926a4adef534"
+    },
+    {
+      "document_id": "kfz-2026-q1",
+      "extraction_id": "real-kfz-2026-q1-v1",
+      "document_type": "kfz_report",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1,
+      "input_hash": "ad1aadbda1e8b506e88f8e5e45f5c63303e80fde75741fca64a532e92ddbaad1"
+    },
+    {
+      "document_id": "receipt-unknown-1",
+      "extraction_id": "ext-receipt-unknown-v1",
+      "document_type": "unknown",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1
+    },
+    {
+      "document_id": "registry-2026-04",
+      "extraction_id": "real-registry-2026-04-v1",
+      "document_type": "registry",
+      "version": 1,
+      "schema_version": "1.2.0",
+      "input_version": 1,
+      "input_hash": "c53fef5af6c926b99f22b78857fd3b4b5a44f6c1d073e3adad6b7f86ea3d36ce"
+    }
+  ],
+  "links": [
+    {
+      "link_id": "28216877-012e-4013-a89d-0b699b0d1bc5",
+      "relationship_type": "references_contract",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "contract-2026-0315",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contract_number",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_ref": "#/tables/0/cells/5",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 285,
+                "r": 553.28,
+                "b": 306,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contractor",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:1vag90m",
+              "source_ref": "#/tables/0/cells/11",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 360,
+                "r": 553.28,
+                "b": 381,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contractor",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.customer",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.customer",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        }
+      ],
+      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "confidence": 0.96,
+      "status": "confirmed",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": []
+    },
+    {
+      "link_id": "e895b9aa-4a8f-4b4f-a211-13448eccef0b",
+      "relationship_type": "line_item_correspondence",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "registry-2026-04",
+      "source_row_id": "act-lines-r001",
+      "target_row_id": "registry-items-r001",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "line_items[0].identifier",
+            "raw_value": "Р-110",
+            "normalized_value": "р110",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:vc7kiv",
+              "source_ref": "#/tables/1/cells/8",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 115.04,
+                "t": 260,
+                "r": 188.08,
+                "b": 281,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "Р-110",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "line_items[0].identifier",
+            "raw_value": "Р-110",
+            "normalized_value": "р110",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1flirvl",
+              "source_ref": "Реестр!B7",
+              "page_no": null,
+              "sheet_name": "Реестр",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "Р-110",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "exact_identifier",
+          "explanation": "Совпал извлечённый идентификатор строки"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1bcjptf",
+              "source_ref": "Сводка!B7",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "shared_contract_context",
+          "explanation": "Обе строки принадлежат документам со ссылкой на один договор"
+        }
+      ],
+      "explanation": "Совпал идентификатор строки; требуется проверка описания и общего договорного контекста",
+      "confidence": 0.72,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Описания строк расходятся"
+      ]
+    },
+    {
+      "link_id": "a9013db1-bc30-42e9-8a36-acb89830c07d",
+      "relationship_type": "line_item_correspondence",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "registry-2026-04",
+      "source_row_id": "act-lines-r002",
+      "target_row_id": "registry-items-r002",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "line_items[1].identifier",
+            "raw_value": "Р-204",
+            "normalized_value": "р204",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:2xgsre",
+              "source_ref": "#/tables/1/cells/15",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 115.04,
+                "t": 285,
+                "r": 188.08,
+                "b": 306,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "Р-204",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "line_items[1].identifier",
+            "raw_value": "Р-204",
+            "normalized_value": "р204",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:ojij8o",
+              "source_ref": "Реестр!B8",
+              "page_no": null,
+              "sheet_name": "Реестр",
+              "cell_address": "B8",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "Р-204",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "exact_identifier",
+          "explanation": "Совпал извлечённый идентификатор строки"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1bcjptf",
+              "source_ref": "Сводка!B7",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "shared_contract_context",
+          "explanation": "Обе строки принадлежат документам со ссылкой на один договор"
+        }
+      ],
+      "explanation": "Совпал идентификатор строки; требуется проверка описания и общего договорного контекста",
+      "confidence": 0.72,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Описания строк расходятся"
+      ]
+    },
+    {
+      "link_id": "bd078f40-2c4b-4852-8452-635325926cac",
+      "relationship_type": "line_item_correspondence",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "registry-2026-04",
+      "source_row_id": "act-lines-r003",
+      "target_row_id": "registry-items-r003",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "line_items[2].identifier",
+            "raw_value": "Р-315",
+            "normalized_value": "р315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:k8sw35",
+              "source_ref": "#/tables/1/cells/22",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 115.04,
+                "t": 310,
+                "r": 188.08,
+                "b": 331,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "Р-315",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "line_items[2].identifier",
+            "raw_value": "Р-315",
+            "normalized_value": "р315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:xeuc5z",
+              "source_ref": "Реестр!B9",
+              "page_no": null,
+              "sheet_name": "Реестр",
+              "cell_address": "B9",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "Р-315",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "exact_identifier",
+          "explanation": "Совпал извлечённый идентификатор строки"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1bcjptf",
+              "source_ref": "Сводка!B7",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "shared_contract_context",
+          "explanation": "Обе строки принадлежат документам со ссылкой на один договор"
+        }
+      ],
+      "explanation": "Совпал идентификатор строки; требуется проверка описания и общего договорного контекста",
+      "confidence": 0.72,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Описания строк расходятся"
+      ]
+    },
+    {
+      "link_id": "2b7842f5-9c97-4975-acb9-de7826067b54",
+      "relationship_type": "line_item_correspondence",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "registry-2026-04",
+      "source_row_id": "act-lines-r004",
+      "target_row_id": "registry-items-r004",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "line_items[3].identifier",
+            "raw_value": "Р-418",
+            "normalized_value": "р418",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:2m4avg",
+              "source_ref": "#/tables/1/cells/29",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 115.04,
+                "t": 335,
+                "r": 188.08,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "Р-418",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "line_items[3].identifier",
+            "raw_value": "Р-418",
+            "normalized_value": "р418",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:4v5wam",
+              "source_ref": "Реестр!B10",
+              "page_no": null,
+              "sheet_name": "Реестр",
+              "cell_address": "B10",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "Р-418",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "exact_identifier",
+          "explanation": "Совпал извлечённый идентификатор строки"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1bcjptf",
+              "source_ref": "Сводка!B7",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "shared_contract_context",
+          "explanation": "Обе строки принадлежат документам со ссылкой на один договор"
+        }
+      ],
+      "explanation": "Совпал идентификатор строки; требуется проверка описания и общего договорного контекста",
+      "confidence": 0.72,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Описания строк расходятся"
+      ]
+    },
+    {
+      "link_id": "d8e183d4-ac95-47b3-bcf9-c3b28ef815ab",
+      "relationship_type": "line_item_correspondence",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "registry-2026-04",
+      "source_row_id": "act-lines-r005",
+      "target_row_id": "registry-items-r005",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "line_items[4].identifier",
+            "raw_value": "Р-522",
+            "normalized_value": "р522",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:hz2u0r",
+              "source_ref": "#/tables/1/cells/36",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 115.04,
+                "t": 360,
+                "r": 188.08,
+                "b": 381,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "Р-522",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "line_items[4].identifier",
+            "raw_value": "Р-522",
+            "normalized_value": "р522",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:18uyqmt",
+              "source_ref": "Реестр!B11",
+              "page_no": null,
+              "sheet_name": "Реестр",
+              "cell_address": "B11",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "Р-522",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "exact_identifier",
+          "explanation": "Совпал извлечённый идентификатор строки"
+        },
+        {
+          "source": {
+            "document_id": "act-2026-0424",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "act-2026-0424",
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "registry-2026-04",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1bcjptf",
+              "source_ref": "Сводка!B7",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "shared_contract_context",
+          "explanation": "Обе строки принадлежат документам со ссылкой на один договор"
+        }
+      ],
+      "explanation": "Совпал идентификатор строки; требуется проверка описания и общего договорного контекста",
+      "confidence": 0.72,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Описания строк расходятся"
+      ]
+    },
+    {
+      "link_id": "ca1e8dc4-aded-4dcf-9357-98b916ff3be6",
+      "relationship_type": "references_contract",
+      "source_document_id": "act-ambiguous-1",
+      "target_document_id": "contract-ambiguous-a",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-ambiguous-1",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-77-11-09",
+            "normalized_value": "кд771109",
+            "provenance": null
+          },
+          "target": {
+            "document_id": "contract-ambiguous-a",
+            "path": "fields.contract_number",
+            "raw_value": "КД-77/11-09",
+            "normalized_value": "кд771109",
+            "provenance": null
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        }
+      ],
+      "explanation": "Найдена явная ссылка на договор; независимого подтверждения недостаточно",
+      "confidence": 0.78,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Provenance отсутствует для act-ambiguous-1:fields.contract_reference",
+        "Provenance отсутствует для contract-ambiguous-a:fields.contract_number"
+      ]
+    },
+    {
+      "link_id": "747ec89c-baea-4b37-b133-22f1f691e7cb",
+      "relationship_type": "references_contract",
+      "source_document_id": "act-ambiguous-1",
+      "target_document_id": "contract-ambiguous-b",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "act-ambiguous-1",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-77-11-09",
+            "normalized_value": "кд771109",
+            "provenance": null
+          },
+          "target": {
+            "document_id": "contract-ambiguous-b",
+            "path": "fields.contract_number",
+            "raw_value": "КД-77-11-09",
+            "normalized_value": "кд771109",
+            "provenance": null
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        }
+      ],
+      "explanation": "Найдена явная ссылка на договор; независимого подтверждения недостаточно",
+      "confidence": 0.78,
+      "status": "review",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": [
+        "Provenance отсутствует для act-ambiguous-1:fields.contract_reference",
+        "Provenance отсутствует для contract-ambiguous-b:fields.contract_number"
+      ]
+    },
+    {
+      "link_id": "b3a3681a-2cde-4ff3-819d-487e545e003a",
+      "relationship_type": "amends_contract",
+      "source_document_id": "addendum-2026-04",
+      "target_document_id": "contract-2026-0315",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "addendum-2026-04",
+            "path": "fields.base_contract",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "addendum-2026-04",
+              "source_part_id": "addendum-2026-04:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contract_number",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_ref": "#/tables/0/cells/5",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 285,
+                "r": 553.28,
+                "b": 306,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        },
+        {
+          "source": {
+            "document_id": "addendum-2026-04",
+            "path": "fields.party_1",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "addendum-2026-04",
+              "source_part_id": "addendum-2026-04:src:1vag90m",
+              "source_ref": "#/tables/0/cells/11",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 360,
+                "r": 553.28,
+                "b": 381,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contractor",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        },
+        {
+          "source": {
+            "document_id": "addendum-2026-04",
+            "path": "fields.party_2",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "addendum-2026-04",
+              "source_part_id": "addendum-2026-04:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.customer",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        }
+      ],
+      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "confidence": 0.96,
+      "status": "confirmed",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": []
+    },
+    {
+      "link_id": "0d925d8c-7d8a-4474-a07d-0ecdeaad6ea9",
+      "relationship_type": "invoice_for_contract",
+      "source_document_id": "invoice-2026-0408",
+      "target_document_id": "contract-2026-0315",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "invoice-2026-0408",
+            "path": "fields.contract_reference",
+            "raw_value": "Договор КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "invoice-2026-0408",
+              "source_part_id": "invoice-2026-0408:src:12apmoh",
+              "source_ref": "#/tables/0/cells/17",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 435,
+                "r": 553.28,
+                "b": 456,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "Договор КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contract_number",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_ref": "#/tables/0/cells/5",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 285,
+                "r": 553.28,
+                "b": 306,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        },
+        {
+          "source": {
+            "document_id": "invoice-2026-0408",
+            "path": "fields.buyer",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "invoice-2026-0408",
+              "source_part_id": "invoice-2026-0408:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contractor",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        }
+      ],
+      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "confidence": 0.96,
+      "status": "confirmed",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": []
+    },
+    {
+      "link_id": "607a2264-8f09-4146-ab39-534edbd37feb",
+      "relationship_type": "report_entry_for_contract",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "contract-2026-0315",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "kfz-2026-q1",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "kfz-2026-q1",
+              "source_part_id": "kfz-2026-q1:src:lbr3qy",
+              "source_ref": "#/tables/0/cells/19",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 460,
+                "r": 553.28,
+                "b": 481,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contract_number",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_ref": "#/tables/0/cells/5",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 285,
+                "r": 553.28,
+                "b": 306,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        },
+        {
+          "source": {
+            "document_id": "kfz-2026-q1",
+            "path": "fields.reporting_organization",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "kfz-2026-q1",
+              "source_part_id": "kfz-2026-q1:src:1vag90m",
+              "source_ref": "#/tables/0/cells/11",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 360,
+                "r": 553.28,
+                "b": 381,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contractor",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        },
+        {
+          "source": {
+            "document_id": "kfz-2026-q1",
+            "path": "fields.customer",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "kfz-2026-q1",
+              "source_part_id": "kfz-2026-q1:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.customer",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        }
+      ],
+      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "confidence": 0.96,
+      "status": "confirmed",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": []
+    },
+    {
+      "link_id": "c92780a4-f12b-4269-9447-1837695cfeac",
+      "relationship_type": "registry_entry_for_contract",
+      "source_document_id": "registry-2026-04",
+      "target_document_id": "contract-2026-0315",
+      "evidence": [
+        {
+          "source": {
+            "document_id": "registry-2026-04",
+            "path": "fields.contract_reference",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1bcjptf",
+              "source_ref": "Сводка!B7",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B7",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contract_number",
+            "raw_value": "КД-24/03-15",
+            "normalized_value": "кд240315",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_ref": "#/tables/0/cells/5",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 285,
+                "r": 553.28,
+                "b": 306,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "КД-24/03-15",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "explicit_document_reference",
+          "explanation": "Явная ссылка на номер договора совпадает с номером договора"
+        },
+        {
+          "source": {
+            "document_id": "registry-2026-04",
+            "path": "fields.organization",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:18s01j1",
+              "source_ref": "Сводка!B5",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B5",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.contractor",
+            "raw_value": "ООО «ИнжКонтур Бета»",
+            "normalized_value": "оооинжконтурбета",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:18s01j1",
+              "source_ref": "#/tables/0/cells/9",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 335,
+                "r": 553.28,
+                "b": 356,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "ООО «ИнжКонтур Бета»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        },
+        {
+          "source": {
+            "document_id": "registry-2026-04",
+            "path": "fields.counterparty",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "registry-2026-04",
+              "source_part_id": "registry-2026-04:src:1vag90m",
+              "source_ref": "Сводка!B6",
+              "page_no": null,
+              "sheet_name": "Сводка",
+              "cell_address": "B6",
+              "bbox": null,
+              "coordinate_origin": null,
+              "page_size": null,
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "target": {
+            "document_id": "contract-2026-0315",
+            "path": "fields.customer",
+            "raw_value": "АО «Городские инженерные системы»",
+            "normalized_value": "аогородскиеинженерныесистемы",
+            "provenance": {
+              "document_id": "contract-2026-0315",
+              "source_part_id": "contract-2026-0315:src:1bcjptf",
+              "source_ref": "#/tables/0/cells/13",
+              "page_no": 1,
+              "sheet_name": null,
+              "cell_address": null,
+              "bbox": {
+                "l": 297.64,
+                "t": 385,
+                "r": 553.28,
+                "b": 406,
+                "coord_origin": "TOPLEFT"
+              },
+              "coordinate_origin": "TOPLEFT",
+              "page_size": {
+                "width": 595.28,
+                "height": 841.89,
+                "unit": "pt"
+              },
+              "column_index": 1,
+              "source_text": "АО «Городские инженерные системы»",
+              "confidence": 0.985,
+              "source_available": true
+            }
+          },
+          "signal": "party_name",
+          "explanation": "Наименование стороны точно совпадает с договором"
+        }
+      ],
+      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "confidence": 0.96,
+      "status": "confirmed",
+      "verification_status": "not_reviewed",
+      "detection_method": "rules",
+      "conflicts": []
+    }
+  ],
+  "review_required": [
+    {
+      "link_id": "e895b9aa-4a8f-4b4f-a211-13448eccef0b",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-2026-0424",
+        "registry-2026-04"
+      ]
+    },
+    {
+      "link_id": "a9013db1-bc30-42e9-8a36-acb89830c07d",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-2026-0424",
+        "registry-2026-04"
+      ]
+    },
+    {
+      "link_id": "bd078f40-2c4b-4852-8452-635325926cac",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-2026-0424",
+        "registry-2026-04"
+      ]
+    },
+    {
+      "link_id": "2b7842f5-9c97-4975-acb9-de7826067b54",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-2026-0424",
+        "registry-2026-04"
+      ]
+    },
+    {
+      "link_id": "d8e183d4-ac95-47b3-bcf9-c3b28ef815ab",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-2026-0424",
+        "registry-2026-04"
+      ]
+    },
+    {
+      "link_id": "ca1e8dc4-aded-4dcf-9357-98b916ff3be6",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-ambiguous-1",
+        "contract-ambiguous-a"
+      ]
+    },
+    {
+      "link_id": "747ec89c-baea-4b37-b133-22f1f691e7cb",
+      "reason": "Недостаточно независимых доказательств для подтверждения",
+      "candidate_document_ids": [
+        "act-ambiguous-1",
+        "contract-ambiguous-b"
+      ]
+    }
+  ],
+  "unlinked_documents": [
+    {
+      "document_id": "receipt-unknown-1",
+      "reason": "Подходящая связь не установлена по доступным доказательствам"
+    }
+  ],
+  "warnings": [],
+  "processing_metadata": {
+    "engine_version": "0.1.0",
+    "llm": {
+      "enabled": false,
+      "provider": "Polza AI",
+      "model": "deepseek/deepseek-v4-flash",
+      "calls": 0,
+      "errors": 0
+    },
+    "duration_ms": 51
+  }
+}

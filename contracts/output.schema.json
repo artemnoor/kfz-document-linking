@@ -1,0 +1,517 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artemnoor.github.io/kfz-document-linking/contracts/output.schema.json",
+  "title": "Document Linking result 1.0.0",
+  "type": "object",
+  "properties": {
+    "linking_run_id": {
+      "type": "string"
+    },
+    "contract_version": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "input_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "extraction_id": {
+            "type": "string"
+          },
+          "document_type": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "input_version": {
+            "type": "number"
+          },
+          "input_hash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "extraction_id",
+          "document_type",
+          "version",
+          "schema_version"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "link_id": {
+            "type": "string"
+          },
+          "relationship_type": {
+            "type": "string",
+            "enum": [
+              "references_contract",
+              "amends_contract",
+              "invoice_for_contract",
+              "registry_entry_for_act",
+              "registry_entry_for_contract",
+              "report_entry_for_act",
+              "report_entry_for_contract",
+              "line_item_correspondence"
+            ]
+          },
+          "source_document_id": {
+            "type": "string"
+          },
+          "target_document_id": {
+            "type": "string"
+          },
+          "source_row_id": {
+            "type": "string"
+          },
+          "target_row_id": {
+            "type": "string"
+          },
+          "evidence": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "proposed",
+              "review",
+              "rejected"
+            ]
+          },
+          "verification_status": {
+            "type": "string",
+            "enum": [
+              "not_reviewed",
+              "human_confirmed",
+              "human_rejected"
+            ]
+          },
+          "detection_method": {
+            "type": "string",
+            "enum": [
+              "rules",
+              "hybrid",
+              "llm"
+            ]
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "link_id",
+          "relationship_type",
+          "source_document_id",
+          "target_document_id",
+          "evidence",
+          "explanation",
+          "confidence",
+          "status",
+          "verification_status",
+          "detection_method",
+          "conflicts"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "review_required": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "link_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "candidate_document_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "link_id",
+          "reason",
+          "candidate_document_ids"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unlinked_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "processing_metadata": {
+      "type": "object",
+      "properties": {
+        "engine_version": {
+          "type": "string"
+        },
+        "llm": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "provider": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "calls": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "errors": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "enabled",
+            "provider",
+            "model",
+            "calls",
+            "errors"
+          ],
+          "additionalProperties": false
+        },
+        "duration_ms": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "engine_version",
+        "llm",
+        "duration_ms"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "linking_run_id",
+    "contract_version",
+    "created_at",
+    "input_documents",
+    "links",
+    "review_required",
+    "unlinked_documents",
+    "warnings",
+    "processing_metadata"
+  ],
+  "additionalProperties": {},
+  "$defs": {
+    "__schema0": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "object",
+          "properties": {
+            "document_id": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "raw_value": {},
+            "normalized_value": {
+              "type": "string"
+            },
+            "provenance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/__schema1"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "document_id",
+            "path",
+            "raw_value",
+            "normalized_value",
+            "provenance"
+          ],
+          "additionalProperties": false
+        },
+        "target": {
+          "type": "object",
+          "properties": {
+            "document_id": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "raw_value": {},
+            "normalized_value": {
+              "type": "string"
+            },
+            "provenance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/__schema1"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "document_id",
+            "path",
+            "raw_value",
+            "normalized_value",
+            "provenance"
+          ],
+          "additionalProperties": false
+        },
+        "signal": {
+          "type": "string"
+        },
+        "explanation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "signal",
+        "explanation"
+      ],
+      "additionalProperties": false
+    },
+    "__schema1": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "source_part_id": {
+          "type": "string"
+        },
+        "source_ref": {
+          "type": "string"
+        },
+        "page_no": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "sheet_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cell_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bbox": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "l": {
+                  "type": "number"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "r": {
+                  "type": "number"
+                },
+                "b": {
+                  "type": "number"
+                },
+                "coord_origin": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "l",
+                "t",
+                "r",
+                "b"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coordinate_origin": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "page_size": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "type": "number"
+                },
+                "height": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "width",
+                "height",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "table_id": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "column_index": {
+          "type": "number"
+        },
+        "source_text": {
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_available": {
+          "type": "boolean"
+        },
+        "provenance_alternates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "page_no": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "bbox": {
+                "anyOf": [
+                  {},
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "coordinate_origin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "source_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "document_id",
+        "source_text"
+      ],
+      "additionalProperties": {}
+    }
+  }
+}

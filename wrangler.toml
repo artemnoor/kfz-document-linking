@@ -1,0 +1,18 @@
+name = "kfz-document-linking"
+main = "worker/index.ts"
+compatibility_date = "2026-11-01"
+[[d1_databases]]
+binding = "DB"
+database_name = "kfz-document-linking"
+database_id = "local-development"
+migrations_dir = "migrations"
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+[vars]
+LLM_ENABLED = "false"
+LLM_MODEL = "deepseek/deepseek-v4-flash"
+LLM_MAX_CALLS_PER_RUN = "8"
+LLM_TIMEOUT_MS = "12000"

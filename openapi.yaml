@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info:
+  title: KFZ Document Linking API
+  version: 1.0.0
+  description: Связывание результатов Structured Extraction. HTTP API не обращается к БД предыдущего сервиса.
+servers:
+  - url: http://127.0.0.1:8791
+paths:
+  /api/health:
+    get:
+      summary: Проверка готовности
+      responses:
+        '200': { description: Сервис доступен }
+  /api/linking-runs:
+    post:
+      summary: Проверить массив результатов Structured Extraction и найти документные и построчные связи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: array, items: { $ref: './contracts/input.schema.json' } }
+      responses:
+        '201': { description: Результат соответствует output contract 1.0.0, content: { application/json: { schema: { $ref: './contracts/output.schema.json' } } } }
+        '422': { description: Вход несовместим; тело содержит diagnostics с индексом, JSON-путём и описанием }
+  /api/linking-runs/{id}:
+    get:
+      summary: Получить сохранённый запуск
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Result JSON }, '404': { description: Не найден } }
+  /api/linking-runs/{runId}/links/{linkId}:
+    patch:
+      summary: Подтвердить или отклонить связь специалистом
+      parameters:
+        - { name: runId, in: path, required: true, schema: { type: string } }
+        - { name: linkId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [status], properties: { status: { enum: [confirmed, rejected] } } }
+      responses: { '200': { description: Обновлённый результат }, '404': { description: Не найден } }
