@@ -1,7 +1,7 @@
 {
-  "linking_run_id": "d7f5d9af-4f24-4a66-8243-f3894cc763ae",
+  "linking_run_id": "03876d1c-dd6d-454f-a9ec-50ee273373b8",
   "contract_version": "1.0.0",
-  "created_at": "2026-11-12T17:34:23.395Z",
+  "created_at": "2026-11-12T17:37:53.978Z",
   "input_documents": [
     {
       "document_id": "act-2026-0424",
@@ -92,7 +92,7 @@
   ],
   "links": [
     {
-      "link_id": "28216877-012e-4013-a89d-0b699b0d1bc5",
+      "link_id": "22e41652-fcb9-4db2-b6f7-1d8f69d9068a",
       "relationship_type": "references_contract",
       "source_document_id": "act-2026-0424",
       "target_document_id": "contract-2026-0315",
@@ -296,7 +296,7 @@
           "explanation": "Наименование стороны точно совпадает с договором"
         }
       ],
-      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "explanation": "Явная ссылка подтверждена точным совпадением наименования стороны",
       "confidence": 0.96,
       "status": "confirmed",
       "verification_status": "not_reviewed",
@@ -304,7 +304,7 @@
       "conflicts": []
     },
     {
-      "link_id": "e895b9aa-4a8f-4b4f-a211-13448eccef0b",
+      "link_id": "285ebf1d-6d41-47c1-b3da-0532a306e871",
       "relationship_type": "line_item_correspondence",
       "source_document_id": "act-2026-0424",
       "target_document_id": "registry-2026-04",
@@ -434,7 +434,7 @@
       ]
     },
     {
-      "link_id": "a9013db1-bc30-42e9-8a36-acb89830c07d",
+      "link_id": "72e722ec-258d-4487-8e9d-f14d35bb7930",
       "relationship_type": "line_item_correspondence",
       "source_document_id": "act-2026-0424",
       "target_document_id": "registry-2026-04",
@@ -564,7 +564,7 @@
       ]
     },
     {
-      "link_id": "bd078f40-2c4b-4852-8452-635325926cac",
+      "link_id": "e638b410-3dbe-4be2-930b-d1142d5b860b",
       "relationship_type": "line_item_correspondence",
       "source_document_id": "act-2026-0424",
       "target_document_id": "registry-2026-04",
@@ -694,7 +694,7 @@
       ]
     },
     {
-      "link_id": "2b7842f5-9c97-4975-acb9-de7826067b54",
+      "link_id": "5cad8e11-0b8b-422e-8de4-16556a9bd713",
       "relationship_type": "line_item_correspondence",
       "source_document_id": "act-2026-0424",
       "target_document_id": "registry-2026-04",
@@ -824,7 +824,7 @@
       ]
     },
     {
-      "link_id": "d8e183d4-ac95-47b3-bcf9-c3b28ef815ab",
+      "link_id": "8bf368cb-ceea-4a73-92ad-eeba4961f43a",
       "relationship_type": "line_item_correspondence",
       "source_document_id": "act-2026-0424",
       "target_document_id": "registry-2026-04",
@@ -954,7 +954,7 @@
       ]
     },
     {
-      "link_id": "ca1e8dc4-aded-4dcf-9357-98b916ff3be6",
+      "link_id": "c735dfd3-5f15-4892-9f1c-979ad67d326d",
       "relationship_type": "references_contract",
       "source_document_id": "act-ambiguous-1",
       "target_document_id": "contract-ambiguous-a",
@@ -989,7 +989,7 @@
       ]
     },
     {
-      "link_id": "747ec89c-baea-4b37-b133-22f1f691e7cb",
+      "link_id": "1868184b-7a71-4c42-84d6-19e6cd15898a",
       "relationship_type": "references_contract",
       "source_document_id": "act-ambiguous-1",
       "target_document_id": "contract-ambiguous-b",
@@ -1024,7 +1024,7 @@
       ]
     },
     {
-      "link_id": "b3a3681a-2cde-4ff3-819d-487e545e003a",
+      "link_id": "6c4f6094-2ce3-486f-b4e5-3ebc80bad54c",
       "relationship_type": "amends_contract",
       "source_document_id": "addendum-2026-04",
       "target_document_id": "contract-2026-0315",
@@ -1228,7 +1228,7 @@
           "explanation": "Наименование стороны точно совпадает с договором"
         }
       ],
-      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "explanation": "Явная ссылка подтверждена точным совпадением наименования стороны",
       "confidence": 0.96,
       "status": "confirmed",
       "verification_status": "not_reviewed",
@@ -1236,7 +1236,7 @@
       "conflicts": []
     },
     {
-      "link_id": "0d925d8c-7d8a-4474-a07d-0ecdeaad6ea9",
+      "link_id": "223649dc-4595-4800-b6a0-15f208ddc79d",
       "relationship_type": "invoice_for_contract",
       "source_document_id": "invoice-2026-0408",
       "target_document_id": "contract-2026-0315",
@@ -1374,7 +1374,7 @@
           "explanation": "Наименование стороны точно совпадает с договором"
         }
       ],
-      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "explanation": "Явная ссылка подтверждена точным совпадением наименования стороны",
       "confidence": 0.96,
       "status": "confirmed",
       "verification_status": "not_reviewed",
@@ -1382,7 +1382,7 @@
       "conflicts": []
     },
     {
-      "link_id": "607a2264-8f09-4146-ab39-534edbd37feb",
+      "link_id": "4a888f29-bd89-4230-af6e-5d986d85cc5a",
       "relationship_type": "report_entry_for_contract",
       "source_document_id": "kfz-2026-q1",
       "target_document_id": "contract-2026-0315",
@@ -1586,7 +1586,7 @@
           "explanation": "Наименование стороны точно совпадает с договором"
         }
       ],
-      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "explanation": "Явная ссылка подтверждена точным совпадением наименования стороны",
       "confidence": 0.96,
       "status": "confirmed",
       "verification_status": "not_reviewed",
@@ -1594,7 +1594,7 @@
       "conflicts": []
     },
     {
-      "link_id": "c92780a4-f12b-4269-9447-1837695cfeac",
+      "link_id": "8307a8d4-865d-4db0-a80e-d898e5338e93",
       "relationship_type": "registry_entry_for_contract",
       "source_document_id": "registry-2026-04",
       "target_document_id": "contract-2026-0315",
@@ -1768,7 +1768,7 @@
           "explanation": "Наименование стороны точно совпадает с договором"
         }
       ],
-      "explanation": "Явная ссылка подтверждена совпадением ИНН стороны",
+      "explanation": "Явная ссылка подтверждена точным совпадением наименования стороны",
       "confidence": 0.96,
       "status": "confirmed",
       "verification_status": "not_reviewed",
@@ -1778,7 +1778,7 @@
   ],
   "review_required": [
     {
-      "link_id": "e895b9aa-4a8f-4b4f-a211-13448eccef0b",
+      "link_id": "285ebf1d-6d41-47c1-b3da-0532a306e871",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-2026-0424",
@@ -1786,7 +1786,7 @@
       ]
     },
     {
-      "link_id": "a9013db1-bc30-42e9-8a36-acb89830c07d",
+      "link_id": "72e722ec-258d-4487-8e9d-f14d35bb7930",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-2026-0424",
@@ -1794,7 +1794,7 @@
       ]
     },
     {
-      "link_id": "bd078f40-2c4b-4852-8452-635325926cac",
+      "link_id": "e638b410-3dbe-4be2-930b-d1142d5b860b",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-2026-0424",
@@ -1802,7 +1802,7 @@
       ]
     },
     {
-      "link_id": "2b7842f5-9c97-4975-acb9-de7826067b54",
+      "link_id": "5cad8e11-0b8b-422e-8de4-16556a9bd713",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-2026-0424",
@@ -1810,7 +1810,7 @@
       ]
     },
     {
-      "link_id": "d8e183d4-ac95-47b3-bcf9-c3b28ef815ab",
+      "link_id": "8bf368cb-ceea-4a73-92ad-eeba4961f43a",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-2026-0424",
@@ -1818,7 +1818,7 @@
       ]
     },
     {
-      "link_id": "ca1e8dc4-aded-4dcf-9357-98b916ff3be6",
+      "link_id": "c735dfd3-5f15-4892-9f1c-979ad67d326d",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-ambiguous-1",
@@ -1826,7 +1826,7 @@
       ]
     },
     {
-      "link_id": "747ec89c-baea-4b37-b133-22f1f691e7cb",
+      "link_id": "1868184b-7a71-4c42-84d6-19e6cd15898a",
       "reason": "Недостаточно независимых доказательств для подтверждения",
       "candidate_document_ids": [
         "act-ambiguous-1",
@@ -1850,6 +1850,6 @@
       "calls": 0,
       "errors": 0
     },
-    "duration_ms": 51
+    "duration_ms": 52
   }
 }

@@ -63,11 +63,11 @@ export function matchRules(c: Candidate): Link[] {
       : dependentType === "act"
         ? [["contractor_inn", "contractor_inn"], ["customer_inn", "customer_inn"]]
         : [["supplier_inn", "contractor_inn"], ["supplier_inn", "customer_inn"], ["buyer_inn", "contractor_inn"], ["buyer_inn", "customer_inn"]];
-  let partySupport = false, contradiction = false;
+  let partySupport = false, innSupport = false, nameSupport = false, contradiction = false;
   for (const [ka, kb] of pairs) {
     const aContract = c.a.extraction.document_type === "contract";
     const va = aContract ? c.b.values[ka] : c.a.values[ka], vb = aContract ? c.a.values[kb] : c.b.values[kb];
-    if (usable(va) && usable(vb)) { if (normalizeIdentifier(valueOf(va)) === normalizeIdentifier(valueOf(vb))) { ev.push(evidence(va, aContract ? c.b.extraction.document_id : c.a.extraction.document_id, `fields.${ka}`, vb, aContract ? c.a.extraction.document_id : c.b.extraction.document_id, `fields.${kb}`, "party_inn", "ИНН стороны совпадает")); partySupport = true; } else contradiction = true; }
+    if (usable(va) && usable(vb)) { if (normalizeIdentifier(valueOf(va)) === normalizeIdentifier(valueOf(vb))) { ev.push(evidence(va, aContract ? c.b.extraction.document_id : c.a.extraction.document_id, `fields.${ka}`, vb, aContract ? c.a.extraction.document_id : c.b.extraction.document_id, `fields.${kb}`, "party_inn", "ИНН стороны совпадает")); partySupport = true; innSupport = true; } else contradiction = true; }
   }
   const namePairs: [string, string][] = dependentType === "invoice"
     ? [["buyer", "contractor"], ["buyer", "customer"]]
@@ -85,9 +85,9 @@ export function matchRules(c: Candidate): Link[] {
     const contractValue = c.a.extraction.document_type === "contract" ? c.a.values[contractKey] : c.b.values[contractKey];
     if (usable(dependentValue) && usable(contractValue) && normalizeText(valueOf(dependentValue)) === normalizeText(valueOf(contractValue))) {
       ev.push(evidence(dependentValue, c.a.extraction.document_type === "contract" ? c.b.extraction.document_id : c.a.extraction.document_id, `fields.${dependentKey}`, contractValue, doc.extraction.document_id, `fields.${contractKey}`, "party_name", "Наименование стороны точно совпадает с договором"));
-      partySupport = true;
+      partySupport = true; nameSupport = true;
     }
   }
   if (contradiction && (dependentType !== "invoice" || !partySupport)) return [];
-  return [mk(c, type, ev, partySupport ? .96 : .78, partySupport ? "Явная ссылка подтверждена совпадением ИНН стороны" : "Найдена явная ссылка на договор; независимого подтверждения недостаточно")];
+  return [mk(c, type, ev, partySupport ? .96 : .78, innSupport ? "Явная ссылка подтверждена совпадением ИНН стороны" : nameSupport ? "Явная ссылка подтверждена точным совпадением наименования стороны" : "Найдена явная ссылка на договор; независимого подтверждения недостаточно")];
 }
