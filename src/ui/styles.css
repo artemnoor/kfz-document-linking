@@ -4,3 +4,4 @@
 .api-token{width:116px;height:27px;border:1px solid var(--line);border-radius:3px;background:#fffefa;padding:0 7px;font:9px var(--mono);color:var(--ink)}.api-token::placeholder{color:#a1a89f}@media(max-width:720px){.top-meta{gap:6px}.api-token{width:76px}}
 
 .analysis-summary{margin:14px 0 22px;padding:14px 16px;border:1px solid var(--line);background:var(--paper);display:grid;gap:7px;font-size:11px}.analysis-summary p{margin:0 0 5px;color:#4d5851;line-height:1.6}.analysis-summary>small{color:var(--muted);line-height:1.5}
+.analysis-warning{padding:10px 12px;border-left:3px solid #d99b32;background:#fff7e8;color:#79551d;border-radius:4px}

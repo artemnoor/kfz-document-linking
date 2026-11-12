@@ -26,6 +26,7 @@ The smoke fixture is small and has no source provenance; it validates authentica
 - Output: 10 document/row links, 5 with row IDs, 10 evidence items; no documents marked unlinked.
 - D1 checkpoint resume: the first attempt encountered a 90-second Polza request timeout after completed fragments had been saved. Retrying the same payload continued from those fragments. On successful persistence the checkpoint row was deleted.
 - Technical output validation and GET round-trip: passed.
+- Browser flow: uploaded two prepared extraction JSON files, ran the real analysis, saw the model's summary and the technical-validation warning, then downloaded and parsed the output JSON (contract 1.1.0).
 
 The number of discovered links is an observed model result, not a quality score. There is no independently labeled gold set in this repository, so precision, recall, F1, direction accuracy, and semantic line-match accuracy have not been measured. They require expert-validated expected links and provenance labels; mock responses are not used as evidence of model quality.
 

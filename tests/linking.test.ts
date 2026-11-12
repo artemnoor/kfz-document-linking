@@ -61,7 +61,10 @@ test("model choice is pinned and missing credentials fail without fallback", asy
 test("invalid evidence paths and fabricated values are discarded", async () => {
   const docs = fixtureDocs.slice(0, 2), originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [{ relationship_type: "new_open_relationship", source_document_id: docs[0].document_id, target_document_id: docs[1].document_id, evidence: [{ source: { document_id: docs[0].document_id, path: "fields.does_not_exist", raw_value: "invented" }, target: { document_id: docs[1].document_id, path: "fields.contract_number", raw_value: "invented" } }], confidence: 1, status: "confirmed" }], unlinked_document_ids: [], analysis_summary: "" }) } }] }), { status: 200 });
-  try { const result = await analyzeDocumentSet(docs as any, { apiKey: "test-only", timeoutMs: 1000, maxCalls: 52, maxInputTokens: 999999, systemPrompt }); assert.equal(result.links.length, 0); }
+  try {
+    const result = await analyzeDocumentSet(docs as any, { apiKey: "test-only", timeoutMs: 1000, maxCalls: 52, maxInputTokens: 999999, systemPrompt }); assert.equal(result.links.length, 0); assert.equal(result.invalidRelationshipCount, 1);
+    const linked = await linkDocuments(docs, { llm: { enabled: true, apiKey: "test-only", maxCalls: 52, maxInputTokens: 999999, systemPrompt } }); assert.equal(linked.links.length, 0); assert.match(linked.warnings[0], /техническую проверку/);
+  }
   finally { globalThis.fetch = originalFetch; }
 });
 

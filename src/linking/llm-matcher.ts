@@ -57,7 +57,7 @@ function statusCode(status: number): string {
   if (status === 429) return "Polza AI ограничил частоту запросов (HTTP 429)";
   return `Polza AI вернул HTTP ${status}`;
 }
-export type ModelRun = { links: Link[]; unlinkedDocumentIds: string[]; calls: number; errors: number; inputTokens?: number; outputTokens?: number; costAmount?: number | null; costCurrency?: string | null; durationMs: number; model: string; provider: string; analysisSummary: string; strategy: "full_set" | "document_fragments_then_full_set"; estimatedInputTokens: number };
+export type ModelRun = { links: Link[]; unlinkedDocumentIds: string[]; invalidRelationshipCount: number; calls: number; errors: number; inputTokens?: number; outputTokens?: number; costAmount?: number | null; costCurrency?: string | null; durationMs: number; model: string; provider: string; analysisSummary: string; strategy: "full_set" | "document_fragments_then_full_set"; estimatedInputTokens: number };
 
 export async function analyzeDocumentSet(documents: Extraction[], options: { apiKey: string; timeoutMs: number; maxRunMs?: number; maxCalls: number; model?: string; maxInputTokens?: number; systemPrompt?: string; resumeProgress?: AnalysisProgressState; onProgress?: (state: AnalysisProgressState) => Promise<void> }): Promise<ModelRun> {
   if (!options.apiKey) throw Object.assign(new Error("POLZA_API_KEY не задан; LLM-анализ недоступен"), { status: 503 });
@@ -144,10 +144,10 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
     const parsed = responseBody.value;
     if (!Array.isArray(parsed.links) || !Array.isArray(parsed.unlinked_document_ids)) throw Object.assign(new Error("Ответ Gemma не соответствует структурированному контракту"), { status: 502 });
     const docMap = new Map(documents.map(doc => [doc.document_id, doc]));
-    const links: Link[] = [];
+    const links: Link[] = []; let invalidRelationshipCount = 0;
     for (const proposed of parsed.links) {
       const sourceDoc = docMap.get(proposed?.source_document_id), targetDoc = docMap.get(proposed?.target_document_id);
-      if (!sourceDoc || !targetDoc || sourceDoc.document_id === targetDoc.document_id || typeof proposed.relationship_type !== "string" || !proposed.relationship_type.trim() || !Array.isArray(proposed.evidence) || proposed.evidence.length === 0) continue;
+      if (!sourceDoc || !targetDoc || sourceDoc.document_id === targetDoc.document_id || typeof proposed.relationship_type !== "string" || !proposed.relationship_type.trim() || !Array.isArray(proposed.evidence) || proposed.evidence.length === 0) { invalidRelationshipCount++; continue; }
       const evidence: Evidence[] = []; let valid = true;
       for (const item of proposed.evidence) {
         const s = item?.source, t = item?.target, sd = docMap.get(s?.document_id), td = docMap.get(t?.document_id);
@@ -157,16 +157,16 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
         if (se === undefined || te === undefined || !sourceProvenance || !targetProvenance || sourceProvenance.document_id !== sd.document_id || targetProvenance.document_id !== td.document_id || JSON.stringify(entryValue(se)) !== JSON.stringify(s.raw_value) || JSON.stringify(entryValue(te)) !== JSON.stringify(t.raw_value)) { valid = false; break; }
         evidence.push({ source: { document_id: sd.document_id, path: s.path, raw_value: entryValue(se), normalized_value: normalizedEvidenceValue(sd, s.path, se), provenance: sourceProvenance }, target: { document_id: td.document_id, path: t.path, raw_value: entryValue(te), normalized_value: normalizedEvidenceValue(td, t.path, te), provenance: targetProvenance }, signal: String(item.signal ?? "document_context"), explanation: String(item.explanation ?? "") });
       }
-      if (!valid) continue;
+      if (!valid) { invalidRelationshipCount++; continue; }
       const rowIds = new Set<string>(); for (const doc of [sourceDoc, targetDoc]) { const walk = (v: any) => { if (!v || typeof v !== "object") return; if (typeof v.row_id === "string") rowIds.add(`${doc.document_id}:${v.row_id}`); Object.values(v).forEach(walk); }; walk(doc); }
       const sourceRow = typeof proposed.source_row_id === "string" ? proposed.source_row_id : undefined, targetRow = typeof proposed.target_row_id === "string" ? proposed.target_row_id : undefined;
-      if ((sourceRow && !rowIds.has(`${sourceDoc.document_id}:${sourceRow}`)) || (targetRow && !rowIds.has(`${targetDoc.document_id}:${targetRow}`))) continue;
+      if ((sourceRow && !rowIds.has(`${sourceDoc.document_id}:${sourceRow}`)) || (targetRow && !rowIds.has(`${targetDoc.document_id}:${targetRow}`))) { invalidRelationshipCount++; continue; }
       const citesRow = (documentId: string, rowId: string) => evidence.some(ev => [ev.source, ev.target].some(side => side.document_id === documentId && pathContainsRowId(docMap.get(documentId), side.path, rowId)));
-      if ((sourceRow && !citesRow(sourceDoc.document_id, sourceRow)) || (targetRow && !citesRow(targetDoc.document_id, targetRow))) continue;
+      if ((sourceRow && !citesRow(sourceDoc.document_id, sourceRow)) || (targetRow && !citesRow(targetDoc.document_id, targetRow))) { invalidRelationshipCount++; continue; }
       const requestedStatus = proposed.status as LinkStatus, confidence = Number(proposed.confidence);
-      if (!["confirmed", "proposed", "review", "rejected"].includes(requestedStatus) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) continue;
+      if (!["confirmed", "proposed", "review", "rejected"].includes(requestedStatus) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) { invalidRelationshipCount++; continue; }
       links.push({ link_id: crypto.randomUUID(), relationship_type: proposed.relationship_type.trim(), source_document_id: sourceDoc.document_id, target_document_id: targetDoc.document_id, ...(sourceRow ? { source_row_id: sourceRow } : {}), ...(targetRow ? { target_row_id: targetRow } : {}), evidence, explanation: String(proposed.explanation ?? ""), confidence, status: requestedStatus, verification_status: "not_reviewed", detection_method: "llm", conflicts: Array.isArray(proposed.conflicts) ? proposed.conflicts.map(String) : [], alternatives: Array.isArray(proposed.alternatives) ? proposed.alternatives.map(String) : [] });
     }
-    return { links, unlinkedDocumentIds: parsed.unlinked_document_ids.filter((id: unknown) => typeof id === "string" && docMap.has(id)), calls, errors: 0, inputTokens: inputTokens || undefined, outputTokens: outputTokens || undefined, costAmount: hasCost ? costAmount : null, costCurrency: hasCost ? costCurrency : null, durationMs: Date.now() - runStartedAt, model: model, provider: "Polza AI", analysisSummary: String(parsed.analysis_summary ?? ""), strategy: staged ? "document_fragments_then_full_set" : "full_set", estimatedInputTokens };
+    return { links, unlinkedDocumentIds: parsed.unlinked_document_ids.filter((id: unknown) => typeof id === "string" && docMap.has(id)), invalidRelationshipCount, calls, errors: 0, inputTokens: inputTokens || undefined, outputTokens: outputTokens || undefined, costAmount: hasCost ? costAmount : null, costCurrency: hasCost ? costCurrency : null, durationMs: Date.now() - runStartedAt, model: model, provider: "Polza AI", analysisSummary: String(parsed.analysis_summary ?? ""), strategy: staged ? "document_fragments_then_full_set" : "full_set", estimatedInputTokens };
   } catch (error: any) { throw error; }
 }
