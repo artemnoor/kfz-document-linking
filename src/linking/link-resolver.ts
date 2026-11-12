@@ -1,33 +1,18 @@
-import { validateEvidence } from "./evidence-validator";
-import type { Link, LinkingResult, MatcherOptions } from "./types";
-import { indexDocuments } from "./document-index";
-import { generateCandidates } from "./candidate-generator";
-import { matchRules } from "./rule-matcher";
-import { matchWithPolza } from "./llm-matcher";
+import type { LinkingResult, MatcherOptions } from "./types";
+import { analyzeDocumentSet, GEMMA_MODEL } from "./llm-matcher";
 import { validateInput } from "../contracts/input";
+import { OUTPUT_CONTRACT_VERSION } from "../contracts/registry";
+
 export async function linkDocuments(raw: unknown, options: MatcherOptions = {}): Promise<LinkingResult> {
   const started = Date.now(), checked = validateInput(raw);
   if (!checked.success) throw Object.assign(new Error("Входные данные не соответствуют контракту Structured Extraction 1.2.0"), { status: 422, diagnostics: checked.diagnostics });
-  const docs = checked.documents, index = indexDocuments(docs), candidates = generateCandidates(index);
-  const links: Link[] = [], seen = new Set<string>();
-  for (const candidate of candidates) for (const link of matchRules(candidate)) {
-    const key = [link.relationship_type, link.source_document_id, link.target_document_id, link.source_row_id ?? "", link.target_row_id ?? ""].join("|");
-    if (seen.has(key)) continue; seen.add(key);
-    const validation = validateEvidence(link, docs);
-    if (!validation.valid) { link.status = "review"; link.conflicts.push(...validation.issues); }
-    links.push(link);
-  }
-  let llmCalls = 0, llmErrors = 0;
-  if (options.llm?.enabled && options.llm.apiKey) {
-    const llm = await matchWithPolza(candidates, { apiKey: options.llm.apiKey, timeoutMs: options.llm.timeoutMs ?? 12_000, maxCalls: options.llm.maxCalls ?? 8, model: options.llm.model ?? "deepseek/deepseek-v4-flash" });
-    llmCalls = llm.calls; llmErrors = llm.errors;
-    for (const link of llm.links) if (!links.some(x => x.relationship_type === link.relationship_type && x.source_document_id === link.source_document_id && x.target_document_id === link.target_document_id && x.source_row_id === link.source_row_id && x.target_row_id === link.target_row_id)) links.push(link);
-  }
-  const linked = new Set(links.filter(l => l.status !== "rejected").flatMap(l => [l.source_document_id, l.target_document_id]));
-  const targets = new Map<string, Link[]>();
-  for (const link of links.filter(l => l.status !== "rejected")) { const key = `${link.relationship_type}:${link.source_document_id}${link.source_row_id ? `:${link.source_row_id}` : ""}`; targets.set(key, [...(targets.get(key) ?? []), link]); }
-  for (const group of targets.values()) if (group.length > 1) for (const link of group) { link.status = "review"; link.conflicts.push("Несколько целевых документов или строк подходят; требуется разрешить неоднозначность"); }
-  const reviewRequired = links.filter(l => l.status === "review" || l.status === "proposed").map(l => ({ link_id: l.link_id, reason: l.status === "proposed" ? "LLM предлагает гипотезу, требующую ручной проверки" : "Недостаточно независимых доказательств для подтверждения", candidate_document_ids: [l.source_document_id, l.target_document_id] }));
-  const warnings = llmErrors ? [`Polza AI: ошибок запросов — ${llmErrors}`] : [];
-  return { linking_run_id: crypto.randomUUID(), contract_version: "1.0.0", created_at: new Date().toISOString(), input_documents: docs.map(d => ({ document_id: d.document_id, extraction_id: d.extraction_id, document_type: d.document_type, version: d.version, schema_version: d.schema_version, ...(typeof d.input_version === "number" ? { input_version: d.input_version } : {}), ...(typeof d.input_hash === "string" ? { input_hash: d.input_hash } : {}) })), links, review_required: reviewRequired, unlinked_documents: docs.filter(d => !linked.has(d.document_id)).map(d => ({ document_id: d.document_id, reason: candidates.some(c => c.a.extraction.document_id === d.document_id || c.b.extraction.document_id === d.document_id) ? "Кандидаты рассмотрены, но достаточных доказательств нет; отсутствие связи не установлено" : "Не найдено совместимых кандидатов по доступным типам и признакам" })), warnings, processing_metadata: { engine_version: "0.1.0", llm: { enabled: !!options.llm?.enabled, provider: "Polza AI", model: options.llm?.model ?? "deepseek/deepseek-v4-flash", calls: llmCalls, errors: llmErrors }, duration_ms: Date.now() - started } };
+  if (!options.llm?.enabled || !options.llm.apiKey) throw Object.assign(new Error("LLM-анализ не настроен: задайте POLZA_API_KEY. Локальные правила и fallback отключены."), { status: 503 });
+  const docs = checked.documents;
+  const analysis = await analyzeDocumentSet(docs, { apiKey: options.llm.apiKey, timeoutMs: options.llm.timeoutMs ?? 90_000, maxRunMs: options.llm.maxRunMs ?? 900_000, maxCalls: options.llm.maxCalls ?? 52, model: options.llm.model ?? GEMMA_MODEL, maxInputTokens: options.llm.maxInputTokens, systemPrompt: options.llm.systemPrompt, resumeProgress: options.llm.resumeProgress, onProgress: options.llm.onProgress });
+  const included = new Set(docs.map(doc => doc.document_id));
+  const links = analysis.links.filter(link => included.has(link.source_document_id) && included.has(link.target_document_id));
+  const reviewRequired = links.filter(link => link.status === "review" || link.status === "proposed").map(link => ({ link_id: link.link_id, reason: link.explanation || "Модель обозначила связь как требующую проверки", candidate_document_ids: [link.source_document_id, link.target_document_id] }));
+  const modelUnlinked = new Set<string>(analysis.unlinkedDocumentIds);
+  const unlinkedDocuments = docs.filter(doc => modelUnlinked.has(doc.document_id)).map(doc => ({ document_id: doc.document_id, reason: "Модель не обнаружила подтверждённой связи" }));
+  return { linking_run_id: crypto.randomUUID(), contract_version: OUTPUT_CONTRACT_VERSION, created_at: new Date().toISOString(), input_documents: docs.map(doc => ({ document_id: doc.document_id, extraction_id: doc.extraction_id, document_type: doc.document_type, version: doc.version, schema_version: doc.schema_version, ...(typeof (doc as any).input_version === "number" ? { input_version: (doc as any).input_version } : {}), ...(typeof (doc as any).input_hash === "string" ? { input_hash: (doc as any).input_hash } : {}) })), links, review_required: reviewRequired, unlinked_documents: unlinkedDocuments, warnings: [], analysis_summary: analysis.analysisSummary, processing_metadata: { engine_version: "0.2.0", llm: { enabled: true, provider: analysis.provider, model: analysis.model, strategy: analysis.strategy, estimated_input_tokens: analysis.estimatedInputTokens, calls: analysis.calls, errors: analysis.errors, ...(analysis.inputTokens !== undefined ? { input_tokens: analysis.inputTokens } : {}), ...(analysis.outputTokens !== undefined ? { output_tokens: analysis.outputTokens } : {}), cost_amount: analysis.costAmount ?? null, cost_currency: analysis.costCurrency ?? null, duration_ms: analysis.durationMs }, duration_ms: Date.now() - started } } as LinkingResult;
 }

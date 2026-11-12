@@ -1,3 +1,3 @@
-POLZA_API_KEY=
 API_BEARER_TOKEN=replace-with-a-long-random-secret
-LLM_ENABLED=false
+POLZA_API_KEY=replace-with-your-polza-api-key
+LLM_ENABLED=true

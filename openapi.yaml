@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: KFZ Document Linking API
-  version: 1.0.0
-  description: Связывание результатов Structured Extraction. HTTP API не обращается к БД предыдущего сервиса.
+  version: 1.1.0
+  description: LLM-first анализ всего комплекта результатов Structured Extraction через Gemma 4 26B A4B в Polza AI.
   security:
     - bearerAuth: []
 components:
@@ -38,13 +38,16 @@ paths:
                       type: array
                       items: { $ref: './contracts/input.schema.json' }
       responses:
-        '201': { description: Результат соответствует output contract 1.0.0, content: { application/json: { schema: { $ref: './contracts/output.schema.json' } } } }
+        '201': { description: Результат соответствует output contract 1.1.0, content: { application/json: { schema: { $ref: './contracts/output.schema.json' } } } }
         '200': { description: Повторный идемпотентный запрос возвращает сохранённый результат }
         '401': { description: Отсутствует или неверен bearer token }
         '409': { description: Idempotency-Key повторно использован с другим содержимым }
-        '413': { description: Превышен лимит размера тела запроса }
+        '413': { description: Превышен лимит размера тела, контекста или числа запросов модели }
         '429': { description: Превышен лимит частоты запросов }
         '422': { description: Вход несовместим; тело содержит diagnostics с индексом, JSON-путём и описанием }
+        '502': { description: Ошибка модели или невалидный технический ответ }
+        '503': { description: Ключ Polza отсутствует, баланс недостаточен (HTTP 402 от провайдера) или ограничена частота запросов (HTTP 429) }
+        '504': { description: Таймаут Polza AI }
   /api/demo:
     get:
       summary: Получить встроенный демонстрационный набор Structured Extraction

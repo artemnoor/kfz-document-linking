@@ -1,60 +1,53 @@
 # KFZ Document Linking
 
-Этап 4 связывает готовые результаты Structured Extraction. Он не принимает первичные PDF/Office-файлы, не запускает OCR или извлечение повторно и не выполняет сверку сумм.
+Этап 4 анализирует комплект готовых результатов Structured Extraction и формирует граф связей между документами и строками. Все содержательные решения принимает только `google/gemma-4-26b-a4b-it` через Polza AI. Программный код проверяет входную/выходную структуру и ссылки на существующие документы, пути, строки, значения и provenance, затем сохраняет ответ в D1. Локального правила или fallback-модели нет.
 
-## Контракт входа
+## Контракты
 
-Базовый upstream — [`artemnoor/kfz-structured-extraction-` на SHA `3459f9f9217e964822a1347ba8e92a3629e22fca`](https://github.com/artemnoor/kfz-structured-extraction-/commit/3459f9f9217e964822a1347ba8e92a3629e22fca). В `schema-registry.mjs` этой версии все типы имеют схему `1.2.0`. Источник хранит результаты через `GET /api/extractions/{id}` в поле `extraction`; Input Adapter принимает как сами JSON-объекты, так и этот envelope.
+Вход совместим с актуальной схемой Structured Extraction 1.2.0 (upstream SHA: `1e922e284805f2c1b343b4cb369813c8073b67dd`). Принимаются массив готовых JSON или API envelope `{ "extraction": result }`; все неизвестные дополнительные поля major 1 сохраняются. Точная схема этапа 4: [`contracts/output.schema.json`](contracts/output.schema.json), версия выхода 1.1.0. Тип отношения — свободная строка. Выход включает объяснения, доказательства и provenance, статус, направление, связи строк, не связанные документы, историю модели, токены, стоимость (если сообщает Polza) и время.
 
-Сервис сохраняет upstream имена и значения полей. `contracts/` содержит версии и входную/выходную JSON Schema, `openapi.yaml` описывает API. `fixtures/upstream-structured-extraction-1.2.0/` содержит шесть настоящих результатов `rules_only`, полученных из текущего Structured Extraction кода на демонстрационных parser JSON предыдущего этапа. `fixtures/demo-structured-extraction/` — отдельные сценарии для интерфейса, в том числе неоднозначные связи и документ без пары. Добавочные поля в major 1 разрешены; несовместимый major и некорректные входы отклоняются с JSON-path диагностиками.
+Системная инструкция хранится в [`prompts/document-linking-system.md`](prompts/document-linking-system.md) и поставляется Worker как статический asset.
 
 ## Запуск на Windows
 
-Требуется Node.js 22+ и npm.
+Требуются Node.js 22+ и npm.
 
 ```powershell
 npm install
+Copy-Item .dev.vars.example .dev.vars
+# Укажите API_BEARER_TOKEN в .dev.vars; ключ Polza читается из Windows env
 npm run build
 npx wrangler d1 migrations apply DB --local --env local
 npm run worker
 ```
 
-Откройте http://127.0.0.1:8791. Для быстрых правок интерфейса запустите в отдельном окне `npm run dev` (Vite на `http://127.0.0.1:5173` проксирует `/api` на Worker `http://127.0.0.1:8791`). Скопируйте `.dev.vars.example` в `.dev.vars` и задайте длинный случайный `API_BEARER_TOKEN`; интерфейс попросит его в верхней панели. Для семантического режима задайте `POLZA_API_KEY` и `LLM_ENABLED=true`. Секреты остаются только в серверных переменных; без Polza правила работают офлайн.
+Откройте http://127.0.0.1:8791, загрузите JSON Structured Extraction и запустите анализ. Для быстрого редактирования UI отдельно запустите `npm run dev` (Vite: http://127.0.0.1:5173). `npm run worker` читает `POLZA_API_KEY` или `POLZA_AI_API_KEY` из Windows process/user environment и передаёт его локальному Worker через временный env-файл, который удаляется при остановке сервера. Секрет не записывается в репозиторий. Без ключа Worker сообщает явную ошибку и не выполняет анализ.
 
-## Использование
+## Контекст и вызовы
 
-Загрузите несколько JSON-результатов Structured Extraction или нажмите «Открыть пример», затем «Найти связи». Просмотрите поля и provenance в панели доказательств, подтвердите/отклоните неоднозначные связи и скачайте результат через «Экспорт JSON».
+Polza `/api/v1/models` для указанного model ID сообщает context length 262144 и max completion 32768. Сервис использует бюджет контекста 180000 токенов, оставляя запас для системного промпта и ответа. Предварительная оценка консервативна; после ответа сохраняются фактические token usage и стоимость, если Polza их вернул.
 
-```powershell
-$body = Get-Content .\fixtures\upstream-structured-extraction-1.2.0\act-2026-0424.json -Raw | ConvertFrom-Json
-$contract = Get-Content .\fixtures\upstream-structured-extraction-1.2.0\contract-2026-0315.json -Raw | ConvertFrom-Json
-$payload = ConvertTo-Json -InputObject @($body, $contract) -Depth 100
-$headers = @{ Authorization = 'Bearer <API_BEARER_TOKEN>'; 'Idempotency-Key' = 'local-act-contract-demo' }
-Invoke-RestMethod http://127.0.0.1:8791/api/linking-runs -Method Post -Headers $headers -ContentType 'application/json' -Body $payload
-```
+Комплект, который укладывается в бюджет, отправляется одним запросом. Большой комплект анализируется поэтапно той же Gemma: каждый полный документ передаётся отдельно для подготовки содержательного представления с путями, строками и provenance, затем вся совокупность представлений передаётся для поиска отношений. Ничего не обрезается молча. Если один документ или итоговый контекст не помещается либо исчерпан лимит вызовов, запрос завершается явной ошибкой. Настройки: `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_CALLS_PER_RUN` (не более 52), `LLM_TIMEOUT_MS`.
 
-## API и интеграция этапа 5
+Ошибки 402 и 429, ошибки сети, таймауты, невалидный JSON и исчерпание бюджета отображаются как ошибки анализа; другая модель или правила не запускаются. Настройка модели в Worker фиксирована на `google/gemma-4-26b-a4b-it`. На один запуск отводится до 15 минут и 52 вызовов. Для многоэтапных анализов промежуточные представления сохраняются в D1; повторный запуск того же комплекта продолжает обработку уже изученных фрагментов.
 
-- `POST /api/linking-runs` — поиск связей; тело до 3 МиБ и 50 документов, повтор защищает `Idempotency-Key` или хеш содержимого.
+## API
+
+- `POST /api/linking-runs` — анализ массива до 50 документов, тело до 3 МиБ. Требует `Authorization: Bearer …`.
 - `GET /api/linking-runs/{id}` — получить сохранённый результат.
-- `PATCH /api/linking-runs/{runId}/links/{linkId}` — ручная проверка со статусом `confirmed` или `rejected`.
-- `GET /api/health` — health check.
+- `PATCH /api/linking-runs/{runId}/links/{linkId}` — сохранить решение специалиста (`confirmed` / `rejected`).
+- `GET /api/health` — доступность, версия контракта и безопасный статус конфигурации модели.
 
-Локальный Worker использует `.dev.vars` из примера. Для deployment задайте `API_BEARER_TOKEN` через `npx wrangler secret put API_BEARER_TOKEN`; получение и изменение запусков требуют bearer авторизацию. Worker ограничивает частоту запросов по IP; миграция 002_api_safety.sql добавляет идемпотентность и таблицу лимитов. Противоположное решение проверки нельзя записать поверх уже сохранённого.
-
-Каждая связь хранит ID документов, пути вида `fields.contract_reference` или `line_items[0].description`, строковые ID и исходный provenance с обеих сторон. Следующий этап может найти конкретные показатели в связанных JSON, а затем перейти по `source_ref`, `source_part_id`, `page_no`, `bbox`, `sheet_name` или `cell_address`. Никакой преобразователь входных результатов для этого не нужен. Точный контракт — `contracts/output.schema.json`.
-
-Storage D1 независим: проект владеет миграцией `migrations/0001_initial.sql` and `migrations/0002_api_safety.sql` и принимает JSON через API. Таблицы Structured Extraction он не читает.
-
-Для Cloudflare deployment создайте собственную D1 базу командой `npx wrangler d1 create kfz-document-linking`, укажите выданный `database_id` в `wrangler.toml`, примените `npx wrangler d1 migrations apply DB --remote` и выполните `npm run deploy`.
+Для deployment создайте D1, укажите его ID в `wrangler.toml`, примените миграции и задайте `API_BEARER_TOKEN` и `POLZA_API_KEY` секретами Wrangler. D1 хранит исходные JSON результата и связи; схема upstream в D1 не требуется.
 
 ## Проверки
 
 ```powershell
 npm test
 npm run test:polza
+npm run test:polza:full
 npm run typecheck
 npm run build
 ```
 
-Живой интеграционный тест Polza ограничен одним запросом за запуск. Записанный результат последнего прогона находится в `docs/polza-integration-test.md`. Для проверки нужен `POLZA_API_KEY`. Для локальной проверки интерфейса запустите Worker, откройте страницу, загрузите демонстрационный набор, выполните поиск, откройте доказательство и проверьте JSON экспорт.
+`npm run test:polza` выполняет настоящий короткий интеграционный запрос; `npm run test:polza:full` запускает многоэтапный тест на полном upstream наборе. Оба используют `POLZA_API_KEY` или `POLZA_AI_API_KEY` из Windows environment. Mock-тесты проверяют передачу полного комплекта и технические ограничения, но не считаются доказательством качества Gemma. Калибровка precision/recall/F1 требует независимой экспертной разметки; такой эталонный набор должен быть подготовлен отдельно.

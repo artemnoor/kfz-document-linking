@@ -5,15 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "worker": "wrangler dev --local --env local --ip 127.0.0.1 --port 8791",
+    "worker": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-worker.ps1",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "test:polza": "tsx --test tests/polza.integration.test.ts",
+    "test:polza": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-polza.ps1",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "contracts:export": "tsx scripts/write-demo-fixtures.ts && tsx scripts/export-contract-schemas.ts",
     "demo:export": "tsx scripts/write-demo-result.ts",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test:polza:full": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-polza-full.ps1"
   },
   "dependencies": {
     "hono": "^4.7.0",

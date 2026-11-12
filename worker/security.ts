@@ -1,6 +1,6 @@
 import type { Context, MiddlewareHandler } from "hono";
 
-export type SecurityEnv = { DB?: D1Database; ASSETS?: Fetcher; API_BEARER_TOKEN?: string; POLZA_API_KEY?: string; LLM_ENABLED?: string; LLM_MODEL?: string; LLM_MAX_CALLS_PER_RUN?: string; LLM_TIMEOUT_MS?: string };
+export type SecurityEnv = { DB?: D1Database; ASSETS?: Fetcher; API_BEARER_TOKEN?: string; POLZA_API_KEY?: string; LLM_ENABLED?: string; LLM_MAX_CALLS_PER_RUN?: string; LLM_TIMEOUT_MS?: string; LLM_MAX_INPUT_TOKENS?: string; LLM_MAX_RUN_MS?: string };
 function equal(a: string, b: string): boolean {
   const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
   let diff = x.length ^ y.length;

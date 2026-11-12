@@ -1,14 +1,15 @@
 import { Hono } from "hono";
 import { linkDocuments } from "../src/linking/link-resolver";
+import { GEMMA_MODEL } from "../src/linking/llm-matcher";
 import { linkingOutputSchema } from "../src/contracts/output";
 import type { LinkingResult } from "../src/linking/types";
 import { enforceRateLimit, requireApiToken, sha256, type SecurityEnv } from "./security";
-import { findRunByIdempotency, readRun, readRunJson, saveRun, updateDecision } from "./storage";
+import { findRunByIdempotency, readAnalysisProgress, readRun, readRunJson, saveAnalysisProgress, saveRun, updateDecision } from "./storage";
 
-type Env = SecurityEnv & { DB: D1Database; ASSETS: Fetcher };
+type Env = SecurityEnv & { DB: D1Database; ASSETS: Fetcher; LLM_MAX_INPUT_TOKENS?: string };
 const app = new Hono<{ Bindings: Env }>();
 const MAX_BODY_BYTES = 3 * 1024 * 1024;
-app.get("/api/health", c => c.json({ status: "ok", service: "kfz-document-linking", contract_version: "1.0.0" }));
+app.get("/api/health", c => c.json({ status: "ok", service: "kfz-document-linking", contract_version: "1.1.0", llm: { provider: "Polza AI", model: GEMMA_MODEL, configured: c.env.LLM_ENABLED === "true" && !!c.env.POLZA_API_KEY } }));
 app.use("/api/demo", requireApiToken);
 app.get("/api/demo", async c => {
   const limited = await enforceRateLimit(c, "read"); if (limited) return limited;
@@ -53,9 +54,15 @@ app.post("/api/linking-runs", async c => {
   const existing = await findRunByIdempotency(c.env.DB, key);
   if (existing) return existing.payload_hash === payloadHash ? c.json(JSON.parse(existing.result_json), 200) : c.json({ error: "Idempotency-Key уже использован для другого содержимого" }, 409);
   try {
-    const maxCalls = Math.min(8, Math.max(0, Number(c.env.LLM_MAX_CALLS_PER_RUN ?? 8)));
-    const timeoutMs = Math.min(30000, Math.max(1000, Number(c.env.LLM_TIMEOUT_MS ?? 12000)));
-    const result = await linkDocuments(documents, { llm: { enabled: c.env.LLM_ENABLED === "true" && !!c.env.POLZA_API_KEY, apiKey: c.env.POLZA_API_KEY, model: c.env.LLM_MODEL ?? "deepseek/deepseek-v4-flash", maxCalls, timeoutMs } });
+    const maxCalls = Math.min(52, Math.max(0, Number(c.env.LLM_MAX_CALLS_PER_RUN ?? 52)));
+    const timeoutMs = Math.min(120000, Math.max(1000, Number(c.env.LLM_TIMEOUT_MS ?? 90000)));
+    const maxInputTokens = Math.min(230000, Math.max(1000, Number(c.env.LLM_MAX_INPUT_TOKENS ?? 180000)));
+    const maxRunMs = Math.min(900000, Math.max(10000, Number(c.env.LLM_MAX_RUN_MS ?? 900000)));
+    const resumeProgress = await readAnalysisProgress(c.env.DB, payloadHash);
+    const promptResponse = await c.env.ASSETS.fetch(new Request(new URL("/prompts/document-linking-system.md", c.req.url)));
+    if (!promptResponse.ok) return c.json({ error: "Не найдена системная инструкция prompts/document-linking-system.md" }, 503);
+    const systemPrompt = await promptResponse.text();
+    const result = await linkDocuments(documents, { llm: { enabled: c.env.LLM_ENABLED === "true", apiKey: c.env.POLZA_API_KEY, model: GEMMA_MODEL, maxCalls, timeoutMs, maxRunMs, maxInputTokens, systemPrompt, resumeProgress, onProgress: state => saveAnalysisProgress(c.env.DB, payloadHash, state) } });
     const checked = linkingOutputSchema.safeParse(result);
     if (!checked.success) return c.json({ error: "Ошибка внутреннего выходного контракта", diagnostics: checked.error.issues }, 500);
     try { await saveRun(c.env.DB, result, key, payloadHash); }
@@ -65,7 +72,7 @@ app.post("/api/linking-runs", async c => {
       throw error;
     }
     return c.json(result, 201);
-  } catch (error: any) { return c.json({ error: error.status === 422 ? error.message : "Не удалось обработать пакет документов", ...(error.status === 422 ? { diagnostics: error.diagnostics ?? [] } : {}) }, error.status ?? 500); }
+  } catch (error: any) { const status = Number.isInteger(error.status) ? error.status : 500; return c.json({ error: String(error.message ?? "Не удалось обработать пакет документов"), ...(status === 422 ? { diagnostics: error.diagnostics ?? [] } : {}) }, status); }
 });
 app.get("/api/linking-runs/:id", async c => {
   const limited = await enforceRateLimit(c, "read"); if (limited) return limited;
