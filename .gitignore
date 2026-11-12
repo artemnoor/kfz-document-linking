@@ -1,6 +1,11 @@
 node_modules/
 dist/
-.wrangler/
-.playwright-cli/
-*.tsbuildinfo
+build/
+.env
+.env.*
+!.env.example
 .dev.vars
+.playwright-cli/
+coverage/
+*.tsbuildinfo
+.wrangler/

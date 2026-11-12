@@ -1,9 +1,10 @@
 import type { Extraction } from "../contracts/input";
 import type { AnalysisProgressState, Evidence, Link, LinkStatus } from "./types";
+import { POLZA_BASE_URL, POLZA_MODEL, requestPolzaJson } from "./polza-client";
 import { pathContainsRowId, resolveJsonPath, rowIdExists, validateEvidenceSide, type InvalidRelationshipDiagnostic } from "./evidence-validation";
 
 export const GEMMA_MODEL = "google/gemma-4-26b-a4b-it";
-export const POLZA_BASE_URL = "https://polza.ai/api/v1";
+export { POLZA_BASE_URL } from "./polza-client";
 
 // Conservative preflight estimate; authoritative token usage is recorded from Polza's response.
 function approximateTokens(text: string): number { return Math.ceil(text.length / 2); }
@@ -31,17 +32,12 @@ function fragmentDocument(document: Extraction, tokenBudget: number): Record<str
   if (current.length) chunks.push(current);
   return chunks.map((values, index) => ({ document_id: document.document_id, document_type: document.document_type, chunk_index: index, chunk_count: chunks.length, path_values: values }));
 }
-function statusCode(status: number): string {
-  if (status === 402) return "Polza AI отклонил запрос из-за баланса или оплаты (HTTP 402)";
-  if (status === 429) return "Polza AI ограничил частоту запросов (HTTP 429)";
-  return `Polza AI вернул HTTP ${status}`;
-}
 export type ModelRun = { complete: boolean; phase: "reading_documents" | "resolving_relationships" | "reviewing_requested_source" | "complete"; links: Link[]; unlinkedDocumentIds: string[]; invalidRelationshipDiagnostics: InvalidRelationshipDiagnostic[]; calls: number; errors: number; inputTokens?: number; outputTokens?: number; costAmount?: number | null; costCurrency?: string | null; durationMs: number; model: string; provider: string; analysisSummary: string; strategy: "full_set" | "document_fragments_then_full_set"; estimatedInputTokens: number };
 
 export async function analyzeDocumentSet(documents: Extraction[], options: { apiKey: string; timeoutMs: number; maxRunMs?: number; maxCalls: number; model?: string; maxInputTokens?: number; systemPrompt?: string; resumeProgress?: AnalysisProgressState; onProgress?: (state: AnalysisProgressState) => Promise<void>; maxModelCallsPerInvocation?: number }): Promise<ModelRun> {
   if (!options.apiKey) throw Object.assign(new Error("POLZA_API_KEY не задан; LLM-анализ недоступен"), { status: 503 });
   const model = options.model ?? GEMMA_MODEL;
-  if (model !== GEMMA_MODEL) throw Object.assign(new Error(`Разрешена только модель ${GEMMA_MODEL}`), { status: 500 });
+  if (model !== GEMMA_MODEL || model !== POLZA_MODEL) throw Object.assign(new Error(`Разрешена только модель ${GEMMA_MODEL}`), { status: 500 });
   if (!options.systemPrompt?.trim()) throw Object.assign(new Error("Не загружена системная инструкция prompts/document-linking-system.md"), { status: 503 });
   const systemPrompt = options.systemPrompt;
   if (options.maxCalls < 1) throw Object.assign(new Error("Лимит Polza вызовов должен быть не меньше 1"), { status: 503 });
@@ -70,23 +66,15 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
     if (calls >= options.maxCalls) throw Object.assign(new Error(`Пакету требуется больше вызовов, чем разрешает бюджет (${options.maxCalls}). Увеличьте LLM_MAX_CALLS_PER_RUN.`), { status: 413 });
     calls++;
     await checkpoint();
-    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), options.timeoutMs);
     try {
-      const response = await fetch(`${POLZA_BASE_URL}/chat/completions`, { method: "POST", signal: controller.signal, headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ model, temperature: 0, max_tokens: maxTokens, response_format: { type: "json_object" }, messages: [{ role: "system", content: stagePrompt }, { role: "user", content: userContent }] }) });
-      if (!response.ok) throw Object.assign(new Error(statusCode(response.status)), { status: response.status === 402 || response.status === 429 ? 503 : 502 });
-      const body: any = await response.json(), usage = body.usage ?? {};
-      if (body.model && body.model !== GEMMA_MODEL) throw Object.assign(new Error(`Polza ответил моделью ${body.model}, ожидалась только ${GEMMA_MODEL}`), { status: 502 });
-      inputTokens += Number(usage.prompt_tokens) || 0; outputTokens += Number(usage.completion_tokens) || 0;
-      const reportedCost = typeof usage.cost === "number" ? usage.cost : body.cost;
-      if (typeof reportedCost === "number") { costAmount += reportedCost; costCurrency = usage.cost_currency ?? usage.currency ?? body.cost_currency ?? body.currency ?? "RUB"; hasCost = true; }
+      const body = await requestPolzaJson({ apiKey: options.apiKey, model, timeoutMs: options.timeoutMs, maxTokens, systemPrompt: stagePrompt, userContent });
+      inputTokens += body.promptTokens; outputTokens += body.completionTokens;
+      if (body.cost !== undefined) { costAmount += body.cost; costCurrency = body.currency ?? "RUB"; hasCost = true; }
       await checkpoint();
-      const content = body.choices?.[0]?.message?.content;
-      try { return { value: JSON.parse(content || ""), model: body.model ?? model, finishReason: body.choices?.[0]?.finish_reason }; }
-      catch { throw Object.assign(new Error("Gemma вернула невалидный JSON"), { status: 502 }); }
+      return { value: body.value, model: body.model, finishReason: body.finishReason };
     } catch (error: any) {
-      if (error?.name === "AbortError") throw Object.assign(new Error(`Истекло время ожидания Polza (${options.timeoutMs} мс)`), { status: 504 });
       throw error;
-    } finally { clearTimeout(timer); }
+    }
   };
   try {
     const tasks = documents.flatMap(document => fragmentDocument(document, Math.floor(maxInputTokens / 4)).map(fragment => ({ document, fragment })));

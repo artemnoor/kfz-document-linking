@@ -40,6 +40,17 @@ test("evidence rejects missing paths, mismatched raw values and prototype access
   }
 });
 
+test("available provenance must contain the extraction source_value in its source_text", () => {
+  const source = document("contract-2026-0315") as Extraction, entry = (source as any).fields.contract_number;
+  const path = "fields.contract_number.value";
+  entry.provenance.source_text = "different OCR fragment";
+  const checked = validateEvidenceSide({ document: source, expectedDocumentId: source.document_id, reportedDocumentId: source.document_id, path, rawValue: entry.value });
+  assert.ok(checked.reasons.includes("source_text_value_mismatch"));
+  entry.provenance.source_text = entry.source_value;
+  const supported = validateEvidenceSide({ document: source, expectedDocumentId: source.document_id, reportedDocumentId: source.document_id, path, rawValue: entry.value });
+  assert.equal(supported.valid, true);
+});
+
 test("row evidence requires an existing row and a path that crosses that row", () => {
   const source = document("contract-2026-0315") as Extraction;
   const tableIndex = source.tables.findIndex(table => table.rows.length), row: any = source.tables[tableIndex]?.rows[0];

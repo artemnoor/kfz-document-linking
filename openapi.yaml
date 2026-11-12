@@ -12,14 +12,47 @@ components:
       scheme: bearer
       bearerFormat: API_BEARER_TOKEN
 servers:
-  - url: http://127.0.0.1:8791
+  - url: http://127.0.0.1:3000
 paths:
   /api/health:
     get:
       summary: Проверка готовности
       security: []
       responses:
-        '200': { description: Сервис доступен }
+        '200': { description: PostgreSQL and Redis доступны }
+        '503': { description: Зависимость недоступна }
+  /api/linking-jobs:
+    post:
+      summary: Создать асинхронное задание анализа
+      parameters:
+        - { name: Idempotency-Key, in: header, required: false, schema: { type: string, maxLength: 128 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array
+                  items: { $ref: './contracts/input.schema.json' }
+                - type: object
+                  required: [documents]
+                  properties:
+                    documents: { type: array, items: { $ref: './contracts/input.schema.json' } }
+      responses:
+        '202': { description: Задание поставлено в BullMQ очередь }
+        '200': { description: Возвращено существующее задание с тем же Idempotency-Key }
+        '409': { description: Idempotency-Key повторно использован с другим содержимым }
+        '422': { description: Вход несовместим со Structured Extraction }
+  /api/linking-jobs/{id}:
+    get:
+      summary: Получить прогресс или результат задания
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { '200': { description: Статус, checkpoints, usage и готовый result при завершении }, '404': { description: Задание не найдено } }
+  /api/linking-jobs/{id}/resume:
+    post:
+      summary: Повторно поставить ошибочное задание в очередь
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { '202': { description: Задание возобновлено с сохранённых checkpoints }, '404': { description: Задание не найдено } }
   /api/linking-runs:
     post:
       summary: Проверить массив результатов Structured Extraction и найти документные и построчные связи

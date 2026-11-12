@@ -31,3 +31,4 @@ test("live Polza full-set integration covers every upstream fixture", { skip: !a
   assert.equal(result.input_documents.length, docs.length);
   console.log(JSON.stringify({ provider: "Polza AI", model: result.processing_metadata.llm.model, request_count: result.processing_metadata.llm.calls, input_tokens: result.processing_metadata.llm.input_tokens, output_tokens: result.processing_metadata.llm.output_tokens, cost_amount: result.processing_metadata.llm.cost_amount, cost_currency: result.processing_metadata.llm.cost_currency, output_contract_valid: true, duration_ms: result.processing_metadata.llm.duration_ms }));
 });
+import "dotenv/config";

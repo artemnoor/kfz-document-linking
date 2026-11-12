@@ -1,64 +1,92 @@
 # KFZ Document Linking
 
-Этап 4 анализирует комплект готовых результатов Structured Extraction и формирует граф связей между документами и строками. Все содержательные решения принимает только `google/gemma-4-26b-a4b-it` через Polza AI. Программный код проверяет входную/выходную структуру и ссылки на существующие документы, пути, строки, значения и provenance, затем сохраняет ответ в D1. Локального правила или fallback-модели нет.
+Этап 4 анализирует результаты Structured Extraction и строит граф отношений между документами и их строками. Смысловые решения принимает только `google/gemma-4-26b-a4b-it` через Polza AI. TypeScript-код отвечает за передачу контекста, техническую проверку доказательств, фоновые задания и сохранение результата.
 
-## Контракты
+## Запуск на Windows 11 или VPS
 
-Вход сверен с upstream Structured Extraction 1.2.0 (SHA: `1e922e284805f2c1b343b4cb369813c8073b67dd`). Принимаются массив готовых JSON или API envelope `{ "extraction": result }`; добавочные поля 1.x сохраняются на каждом вложенном уровне. Выход этапа 4 — контракт 1.2.0: тип отношения — свободная строка; недействительные технически предложения модели сохраняются отдельно в `link_validation_diagnostics` и не попадают в граф.
-
-Системная инструкция хранится в [`prompts/document-linking-system.md`](prompts/document-linking-system.md) и поставляется Worker как статический asset.
-
-## Запуск на Windows
-
-Требуются Node.js 22+ и npm.
+Требуются Docker Engine/Desktop с Compose v2. Для вызова модели задайте `POLZA_API_KEY` в `.env`; само приложение, PostgreSQL и Redis работают локально и не требуют облачного аккаунта.
 
 ```powershell
-npm install
-Copy-Item .dev.vars.example .dev.vars
-# Укажите API_BEARER_TOKEN в .dev.vars; ключ Polza читается из Windows env
-npm run build
-npx wrangler d1 migrations apply DB --local --env local
-npm run worker
+Copy-Item .env.example .env
+# Измените POSTGRES_PASSWORD и API_BEARER_TOKEN; укажите POLZA_API_KEY для LLM
+docker compose up --build
 ```
 
-Откройте http://127.0.0.1:8791, загрузите JSON Structured Extraction и запустите анализ. Для быстрого редактирования UI отдельно запустите `npm run dev` (Vite: http://127.0.0.1:5173). `npm run worker` читает `POLZA_API_KEY` или `POLZA_AI_API_KEY` из Windows process/user environment и передаёт его локальному Worker через временный env-файл, который удаляется при остановке сервера. Секрет не записывается в репозиторий. Без ключа Worker сообщает явную ошибку и не выполняет анализ.
+Откройте http://localhost:3000. Сервисы `postgres` и `redis` имеют health checks, миграция запускается перед API и worker. Данные PostgreSQL и очередь Redis сохраняются в Compose volumes при перезапуске.
 
-## Контекст и вызовы
+Без Polza key сервис и интерфейс запускаются, но запрос анализа вернёт явную ошибку конфигурации. Модель не заменяется другой моделью или локальной логикой.
 
-Polza `/api/v1/models` для указанного model ID сообщает context length 262144 и max completion 32768. Сервис использует бюджет контекста 180000 токенов, оставляя запас для системного промпта и ответа. Предварительная оценка консервативна; после ответа сохраняются фактические token usage и стоимость, если Polza их вернул.
+Для остановки используйте `docker compose down`; для сохранения данных не удаляйте volumes через `docker compose down -v`.
 
-Комплект, который укладывается в бюджет, отправляется одним запросом. Большой комплект анализируется поэтапно той же Gemma: каждый полный документ передаётся отдельно для подготовки содержательного представления с путями, строками и provenance, затем вся совокупность представлений передаётся для поиска отношений. Ничего не обрезается молча. Если один документ или итоговый контекст не помещается либо исчерпан лимит вызовов, запрос завершается явной ошибкой. Настройки: `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_CALLS_PER_RUN` (не более 52), `LLM_TIMEOUT_MS`.
+## Разработка без Docker для приложения
 
-Ошибки 402 и 429, ошибки сети, таймауты, невалидный JSON и исчерпание бюджета отображаются как ошибки анализа; другая модель или правила не запускаются. Настройка модели в Worker фиксирована на `google/gemma-4-26b-a4b-it`. На один запуск отводится до 15 минут и 52 вызовов. Для многоэтапных анализов промежуточные представления сохраняются в D1; повторный запуск того же комплекта продолжает обработку уже изученных фрагментов.
+Docker может запускать только PostgreSQL и Redis. Для Node.js требуется версия 22 или новее.
+
+```powershell
+Copy-Item .env.example .env
+npm ci
+docker compose up -d postgres redis
+npm run migrate
+npm run dev:api
+```
+
+В отдельных терминалах запустите `npm run dev:worker` и `npm run dev` (Vite). Откройте http://127.0.0.1:5173. Host-конфигурация из `.env` должна указывать на `localhost:5432` и `localhost:6379`; Compose передаёт контейнерам внутренние DNS адреса автоматически.
+
+## Устройство
+
+- `server/app.ts` — Hono API и раздача собранного frontend.
+- `src/linking/` — Document Linking Engine, клиент Polza/Gemma и Evidence Validator.
+- `server/storage.ts` — PostgreSQL transactions, прогресс, результаты и блокировка заданий.
+- `server/queue.ts`, `server/worker.ts` — BullMQ/Redis и возобновляемая обработка.
+- `migrations/postgres/` — версионированные SQL-миграции PostgreSQL.
+- `src/ui/` — React интерфейс.
+
+BullMQ восстанавливает stalled jobs после завершения процесса. PostgreSQL атомарно захватывает задание с lease, checkpoints содержат точное состояние многоэтапного анализа и usage. Задание продолжает обработку после временной ошибки с backoff; повторы используют ключи идемпотентности и сохранённый прогресс.
+
+В контекст, который помещается, передаётся весь набор Structured Extraction. Для больших наборов Gemma изучает каждый фрагмент с исходными путями, затем может запросить исходный фрагмент по document ID и chunk index и пересмотреть связи. Сводки используются только для навигации; данные не обрезаются молча.
+
+## Настройки
+
+Основные параметры задаются в `.env`:
+
+- `API_BEARER_TOKEN` — доступ к API.
+- `POLZA_API_KEY` — ключ Polza AI. Допускается Windows environment variable `POLZA_API_KEY` или прежнее имя `POLZA_AI_API_KEY`.
+- `DATABASE_URL`, `REDIS_URL` — подключения PostgreSQL и Redis.
+- `LLM_MAX_INPUT_TOKENS` (по умолчанию 180000), `LLM_MAX_CALLS_PER_RUN` (до 52), `LLM_TIMEOUT_MS`, `LLM_MAX_RUN_MS` — лимиты обработки.
+- `PORT`, `HOST` — адрес API (по умолчанию 3000 и `0.0.0.0`).
+
+Модель закреплена на `google/gemma-4-26b-a4b-it`, endpoint — `https://polza.ai/api/v1/chat/completions`. Fallback провайдеров отключён. Стоимость, токены, фактическая модель, provider, длительность и число запросов сохраняются, если Polza сообщает usage.
 
 ## API
 
-- `POST /api/linking-jobs` — создать асинхронный анализ, отвечает `202` с `job_id`; ключ идемпотентности поддерживается.
-- `GET /api/linking-jobs/{id}` — получить фазу, прогресс, ошибку или готовый результат задания.
-- `POST /api/linking-jobs/{id}/resume` — поставить завершившееся ошибкой задание в очередь с сохранёнными checkpoint-ами.
-- `POST /api/linking-runs` — анализ массива до 50 документов, тело до 3 МиБ. Требует `Authorization: Bearer …`.
+Все endpoints, кроме `/api/health`, требуют `Authorization: Bearer <API_BEARER_TOKEN>`.
+
+- `POST /api/linking-jobs` — создать задание; ответ `202` содержит `job_id`. Поддерживает `Idempotency-Key`.
+- `GET /api/linking-jobs/{id}` — статус, фаза, fragments, calls, token usage, стоимость или полный результат.
+- `POST /api/linking-jobs/{id}/resume` — повторно поставить завершившееся ошибкой задание в очередь с сохранёнными checkpoints.
+- `POST /api/linking-runs` — синхронный совместимый endpoint анализа.
 - `GET /api/linking-runs/{id}` — получить сохранённый результат.
-- `PATCH /api/linking-runs/{runId}/links/{linkId}` — сохранить решение специалиста (`confirmed` / `rejected`).
-- `GET /api/health` — доступность, версия контракта и безопасный статус конфигурации модели.
+- `PATCH /api/linking-runs/{runId}/links/{linkId}` — подтвердить или отклонить связь специалистом.
+- `GET /api/demo` — демонстрационные входы.
+- `GET /api/health` — readiness проверки PostgreSQL и Redis.
 
-Фоновые задания выполняются Cloudflare Queues, а прогресс и части входного пакета хранятся в D1. Настройте producer/consumer и dead-letter queue из `wrangler.toml` для локальной или production среды перед запуском. Модель запрашивает исходные фрагменты по ID и индексам; сводки используются только как навигация и не принимаются доказательствами.
-
-Для нового production аккаунта создайте очереди один раз (`npx wrangler queues create kfz-document-analysis` и `npx wrangler queues create kfz-document-analysis-dead-letter`), затем примените миграции D1 и выполните deployment. Локальный Wrangler эмулирует очереди из окружения `local`.
-
-## Независимая оценка
-
-`evaluation/scenarios.json` задаёт набор сценариев, а `evaluation/annotations.template.json` и `evaluation/annotations.schema.json` — формат для независимой экспертной разметки. Набора gold labels сейчас нет, поэтому precision, recall, F1, направление, строки и provenance не измерены. После независимого заполнения разметки и файлов прогнозов запускайте `npm run eval:links -- evaluation/annotations.json`; отчёт считает false positives отдельно.
-
-Для deployment создайте D1, укажите его ID в `wrangler.toml`, примените миграции и задайте `API_BEARER_TOKEN` и `POLZA_API_KEY` секретами Wrangler. D1 хранит исходные JSON результата и связи; схема upstream в D1 не требуется.
+Контракты Structured Extraction 1.2.0 и Document Linking 1.2.0 сохранены. Дополнительные поля будущих minor-версий Structured Extraction принимаются и сохраняются; неизвестная major-версия диагностируется. Результат включает документные/строковые ID, исходные пути, provenance, объяснения, статусы, уверенность, диагностику, историю использования модели и пригоден для Reconciliation.
 
 ## Проверки
 
 ```powershell
 npm test
-npm run test:polza
-npm run test:polza:full
+npm run test:contract
 npm run typecheck
 npm run build
+docker compose up --build
+npm run test:integration
 ```
 
-`npm run test:polza` выполняет настоящий короткий интеграционный запрос; `npm run test:polza:full` запускает многоэтапный тест на полном upstream наборе. Оба используют `POLZA_API_KEY` или `POLZA_AI_API_KEY` из Windows environment. Mock-тесты проверяют передачу полного комплекта и технические ограничения, но не считаются доказательством качества Gemma. Калибровка precision/recall/F1 требует независимой экспертной разметки; такой эталонный набор должен быть подготовлен отдельно.
+Инфраструктурные integration tests используют `DATABASE_URL` и `REDIS_URL`; они проверяют PostgreSQL persistence, эксклюзивное получение задания и повтор BullMQ после временной ошибки. Их можно запустить на хосте, пока Compose поднял локальные сервисы.
+
+`npm run test:polza` выполняет один небольшой настоящий запрос через Polza, если `POLZA_API_KEY` доступен в Windows environment или `.env`. Не запускайте `npm run test:polza:full` без необходимости: это отдельный многоэтапный анализ с большим числом платных запросов.
+
+## Evaluation
+
+Независимая разметка формата описана в `evaluation/annotations.schema.json`, а список тестовых сценариев — в `evaluation/scenarios.json`. Независимой gold-разметки в репозитории нет, поэтому precision, recall, F1, направление, сопоставление строк и точность provenance не измерены. После экспертной разметки отчёт строится командой `npm run eval:links -- evaluation/annotations.json`.

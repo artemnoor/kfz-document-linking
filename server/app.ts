@@ -1,0 +1,136 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { timingSafeEqual } from "node:crypto";
+import { Hono } from "hono";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { linkDocuments } from "../src/linking/link-resolver";
+import { GEMMA_MODEL } from "../src/linking/llm-matcher";
+import { validateInput } from "../src/contracts/input";
+import { linkingOutputSchema } from "../src/contracts/output";
+import { OUTPUT_CONTRACT_VERSION } from "../src/contracts/registry";
+import type { LinkingResult } from "../src/linking/types";
+import type { AnalysisQueue } from "./queue";
+import type { PostgresStorage } from "./storage";
+
+export type AppDependencies = {
+  storage: PostgresStorage;
+  queue: AnalysisQueue;
+  config: { apiToken?: string; polzaApiKey?: string; llmEnabled: boolean; maxCalls: number; timeoutMs: number; maxInputTokens: number; maxRunMs: number; systemPrompt?: string };
+};
+const MAX_BODY_BYTES = 3 * 1024 * 1024;
+function validToken(provided: string, expected?: string): boolean {
+  if (!expected) return false;
+  const a = Buffer.from(provided), b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+async function jsonBody(request: Request): Promise<{ body?: any; error?: string }> {
+  const reader = request.body?.getReader(); if (!reader) return { error: "Пустое тело запроса" };
+  const chunks: Uint8Array[] = []; let total = 0;
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    total += value.byteLength; if (total > MAX_BODY_BYTES) { await reader.cancel(); return { error: "Размер запроса превышает 3 МиБ" }; }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  try { return { body: JSON.parse(new TextDecoder().decode(bytes)) }; } catch { return { error: "Некорректный JSON тела запроса" }; }
+}
+function documentsFrom(body: any): unknown { return body?.documents ?? body; }
+function clientIp(request: Request): string { return request.headers.get("x-real-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"; }
+
+export function createApp(deps: AppDependencies) {
+  const app = new Hono();
+  const auth = async (c: any, next: () => Promise<void>) => {
+    const header = c.req.header("Authorization") ?? "", token = header.startsWith("Bearer ") ? header.slice(7) : "";
+    if (!deps.config.apiToken) return c.json({ error: "Защищённый API не настроен: задайте API_BEARER_TOKEN" }, 503);
+    if (!validToken(token, deps.config.apiToken)) return c.json({ error: "Требуется авторизация" }, 401);
+    await next();
+  };
+  const limit = (action: "run" | "read") => async (c: any, next: () => Promise<void>) => {
+    const allowed = await deps.storage.rateLimit(`${action}:${clientIp(c.req.raw)}`, action === "run" ? 20 : 120);
+    if (!allowed) return c.json({ error: "Слишком много запросов; повторите позже" }, 429);
+    await next();
+  };
+  app.onError((error, c) => {
+    const status = Number.isInteger((error as any).status) ? (error as any).status : 500;
+    return c.json({ error: String(error.message ?? "Внутренняя ошибка"), ...(status === 422 ? { diagnostics: (error as any).diagnostics ?? [] } : []) }, status as any);
+  });
+
+  app.get("/api/health", async c => {
+    try { await deps.storage.health(); await deps.queue.health(); return c.json({ status: "ok", service: "kfz-document-linking", contract_version: OUTPUT_CONTRACT_VERSION, database: "ok", queue: "ok", llm: { provider: "Polza AI", model: GEMMA_MODEL, configured: deps.config.llmEnabled && Boolean(deps.config.polzaApiKey) } }); }
+    catch { return c.json({ status: "unavailable", service: "kfz-document-linking", contract_version: OUTPUT_CONTRACT_VERSION, database: "unknown", queue: "unknown", llm: { provider: "Polza AI", model: GEMMA_MODEL, configured: deps.config.llmEnabled && Boolean(deps.config.polzaApiKey) } }, 503); }
+  });
+
+  app.get("/api/demo", auth, limit("read"), async c => {
+    const names = ["act-2026-0424.json", "addendum-2026-04.json", "contract-2026-0315.json", "invoice-2026-0408.json", "kfz-2026-q1.json", "registry-2026-04.json", "receipt-unknown-1.json", "contract-ambiguous-a.json", "contract-ambiguous-b.json", "act-ambiguous-1.json"];
+    try { const documents = await Promise.all(names.map(async name => JSON.parse(await readFile(resolve(process.cwd(), "dist/demo", name), "utf8")))); return c.json({ documents }); }
+    catch { return c.json({ error: "Не удалось загрузить демонстрационные данные" }, 503); }
+  });
+
+  app.use("/api/linking-runs", auth); app.use("/api/linking-runs/*", auth);
+  app.post("/api/linking-runs", limit("run"), async c => {
+    const parsed = await jsonBody(c.req.raw); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+    const body = parsed.body, documents = documentsFrom(body);
+    if (!Array.isArray(documents) || documents.length > 50) return c.json({ error: "Ожидается массив не более чем из 50 документов" }, 422);
+    const payloadHash = await sha256(JSON.stringify(body)), rawKey = c.req.header("Idempotency-Key");
+    if (rawKey && (rawKey.length > 128 || !/^[\w.:-]+$/.test(rawKey))) return c.json({ error: "Некорректный Idempotency-Key" }, 400);
+    const key = rawKey ? await sha256(rawKey) : payloadHash, existing = await deps.storage.findRunByIdempotency(key);
+    if (existing) return existing.payload_hash === payloadHash ? c.json(existing.result_json, 200) : c.json({ error: "Idempotency-Key уже использован для другого содержимого" }, 409);
+    const prompt = deps.config.systemPrompt ?? await readFile(resolve(process.cwd(), "prompts/document-linking-system.md"), "utf8");
+    const result = await linkDocuments(documents, { llm: { enabled: deps.config.llmEnabled, apiKey: deps.config.polzaApiKey, model: GEMMA_MODEL, maxCalls: deps.config.maxCalls, timeoutMs: deps.config.timeoutMs, maxRunMs: deps.config.maxRunMs, maxInputTokens: deps.config.maxInputTokens, systemPrompt: prompt, resumeProgress: await deps.storage.readProgress(payloadHash), onProgress: state => deps.storage.saveProgress(payloadHash, state) } });
+    const valid = linkingOutputSchema.safeParse(result); if (!valid.success) return c.json({ error: "Ошибка внутреннего выходного контракта", diagnostics: valid.error.issues }, 500);
+    try { await deps.storage.saveRun(result, key, payloadHash); } catch (error) { const retry = await deps.storage.findRunByIdempotency(key); if (retry?.payload_hash === payloadHash) return c.json(retry.result_json, 200); throw error; }
+    return c.json(result, 201);
+  });
+  app.get("/api/linking-runs/:id", limit("read"), async c => {
+    const result = await deps.storage.readRun(c.req.param("id")); return result ? c.json(result) : c.json({ error: "Запуск не найден или повреждён" }, 404);
+  });
+  app.patch("/api/linking-runs/:runId/links/:linkId", limit("read"), async c => {
+    const parsed = await jsonBody(c.req.raw); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+    const body = parsed.body; if (!body || !["confirmed", "rejected"].includes(body.status)) return c.json({ error: "status должен быть confirmed или rejected" }, 400);
+    const previous = await deps.storage.readRun(c.req.param("runId")); if (!previous) return c.json({ error: "Запуск не найден" }, 404);
+    const result = structuredClone(previous) as LinkingResult, link = result.links.find(item => item.link_id === c.req.param("linkId")); if (!link) return c.json({ error: "Связь не найдена" }, 404);
+    if (link.verification_status !== "not_reviewed" && link.status !== body.status) return c.json({ error: "Решение уже сохранено и не может быть перезаписано" }, 409);
+    link.status = body.status; link.verification_status = body.status === "confirmed" ? "human_confirmed" : "human_rejected";
+    result.review_required = result.review_required.filter(item => item.link_id !== link.link_id);
+    try { if (!await deps.storage.updateDecision(previous, result, link)) return c.json({ error: "Результат изменён параллельным запросом; перечитайте его" }, 409); }
+    catch { return c.json({ error: "Не удалось атомарно сохранить решение" }, 503); }
+    return c.json(result);
+  });
+
+  app.use("/api/linking-jobs", auth); app.use("/api/linking-jobs/*", auth);
+  app.post("/api/linking-jobs", limit("run"), async c => {
+    const parsed = await jsonBody(c.req.raw); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+    const body = parsed.body, input = documentsFrom(body);
+    if (!Array.isArray(input) || input.length > 50) return c.json({ error: "Ожидается массив не более чем из 50 документов" }, 422);
+    const checked = validateInput(input); if (!checked.success) return c.json({ error: "Входные данные не соответствуют Structured Extraction 1.2.0", diagnostics: checked.diagnostics }, 422);
+    const payload = JSON.stringify({ documents: checked.documents }), payloadHash = await sha256(payload), rawKey = c.req.header("Idempotency-Key");
+    if (rawKey && (rawKey.length > 128 || !/^[\w.:-]+$/.test(rawKey))) return c.json({ error: "Некорректный Idempotency-Key" }, 400);
+    const key = rawKey ? await sha256(rawKey) : payloadHash, existing = await deps.storage.findJobByIdempotency(key);
+    if (existing) return existing.payload_hash === payloadHash ? c.json({ job_id: existing.id, status: existing.status }, 200) : c.json({ error: "Idempotency-Key уже использован для другого содержимого" }, 409);
+    const id = crypto.randomUUID();
+    try { await deps.storage.createJob({ id, key, payloadHash, payload }); await deps.queue.enqueue(id); return c.json({ job_id: id, status: "queued", status_url: `/api/linking-jobs/${id}` }, 202); }
+    catch (error) { const retry = await deps.storage.findJobByIdempotency(key); if (retry?.payload_hash === payloadHash) { if (retry.status === "queued") await deps.queue.enqueue(retry.id); return c.json({ job_id: retry.id, status: retry.status }, 200); } throw error; }
+  });
+  app.get("/api/linking-jobs/:id", limit("read"), async c => {
+    const job = await deps.storage.readJob(c.req.param("id")); if (!job) return c.json({ error: "Задание не найдено" }, 404);
+    const progress: any = job.progress_json ?? {};
+    return c.json({ job_id: job.id, status: job.status, phase: progress.phase ?? (job.status === "queued" ? "queued" : job.status), progress: { completed_fragments: progress.completed_fragments?.length ?? 0, total_fragments: progress.total_fragments ?? null, model_calls: progress.calls ?? 0, input_tokens: progress.input_tokens ?? 0, output_tokens: progress.output_tokens ?? 0, cost_amount: progress.has_cost ? progress.cost_amount : null, cost_currency: progress.cost_currency ?? null, context_rounds: progress.context_rounds ?? 0 }, model: GEMMA_MODEL, provider: "Polza AI", attempts: job.attempts, last_error: job.last_error, run_id: job.run_id, ...(job.status === "completed" ? { result: job.result_json } : {}), created_at: job.created_at, updated_at: job.updated_at });
+  });
+  app.post("/api/linking-jobs/:id/resume", limit("run"), async c => {
+    const job = await deps.storage.readJob(c.req.param("id")); if (!job) return c.json({ error: "Задание не найдено" }, 404);
+    if (["completed", "queued", "running", "retrying"].includes(job.status)) return c.json({ job_id: job.id, status: job.status }, 200);
+    await deps.storage.resetFailedJob(job.id); await deps.queue.enqueue(job.id, true); return c.json({ job_id: job.id, status: "queued" }, 202);
+  });
+
+  app.use("/*", serveStatic({ root: "./dist" }));
+  app.get("*", async c => {
+    if (!c.req.header("Accept")?.includes("text/html")) return c.notFound();
+    try { return c.html(await readFile(resolve(process.cwd(), "dist/index.html"), "utf8")); }
+    catch { return c.text("Frontend build not found. Run npm run build.", 503); }
+  });
+  return app;
+}
+
+export async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)); return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
