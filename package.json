@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "worker": "wrangler dev --local --ip 127.0.0.1 --port 8791",
+    "worker": "wrangler dev --local --env local --ip 127.0.0.1 --port 8791",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:polza": "tsx --test tests/polza.integration.test.ts",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "contracts:export": "tsx scripts/write-demo-fixtures.ts && tsx scripts/export-contract-schemas.ts",
     "demo:export": "tsx scripts/write-demo-result.ts",

@@ -15,11 +15,11 @@
 ```powershell
 npm install
 npm run build
-npx wrangler d1 migrations apply DB --local
+npx wrangler d1 migrations apply DB --local --env local
 npm run worker
 ```
 
-Откройте http://127.0.0.1:8791. Для быстрых правок интерфейса запустите в отдельном окне `npm run dev` (Vite на 5173 проксирует `/api` на Worker 8791). Поставьте `POLZA_API_KEY` в `.dev.vars` только если нужен семантический режим. По умолчанию `LLM_ENABLED=false`; ключ не требуется, правила работают офлайн.
+Откройте http://127.0.0.1:8791. Для быстрых правок интерфейса запустите в отдельном окне `npm run dev` (Vite на `http://127.0.0.1:5173` проксирует `/api` на Worker `http://127.0.0.1:8791`). Скопируйте `.dev.vars.example` в `.dev.vars` и задайте длинный случайный `API_BEARER_TOKEN`; интерфейс попросит его в верхней панели. Для семантического режима задайте `POLZA_API_KEY` и `LLM_ENABLED=true`. Секреты остаются только в серверных переменных; без Polza правила работают офлайн.
 
 ## Использование
 
@@ -29,19 +29,22 @@ npm run worker
 $body = Get-Content .\fixtures\upstream-structured-extraction-1.2.0\act-2026-0424.json -Raw | ConvertFrom-Json
 $contract = Get-Content .\fixtures\upstream-structured-extraction-1.2.0\contract-2026-0315.json -Raw | ConvertFrom-Json
 $payload = ConvertTo-Json -InputObject @($body, $contract) -Depth 100
-Invoke-RestMethod http://127.0.0.1:8787/api/linking-runs -Method Post -ContentType 'application/json' -Body $payload
+$headers = @{ Authorization = 'Bearer <API_BEARER_TOKEN>'; 'Idempotency-Key' = 'local-act-contract-demo' }
+Invoke-RestMethod http://127.0.0.1:8791/api/linking-runs -Method Post -Headers $headers -ContentType 'application/json' -Body $payload
 ```
 
 ## API и интеграция этапа 5
 
-- `POST /api/linking-runs` — проверка массива результатов и поиск ссылок.
+- `POST /api/linking-runs` — поиск связей; тело до 3 МиБ и 50 документов, повтор защищает `Idempotency-Key` или хеш содержимого.
 - `GET /api/linking-runs/{id}` — получить сохранённый результат.
 - `PATCH /api/linking-runs/{runId}/links/{linkId}` — ручная проверка со статусом `confirmed` или `rejected`.
 - `GET /api/health` — health check.
 
+Локальный Worker использует `.dev.vars` из примера. Для deployment задайте `API_BEARER_TOKEN` через `npx wrangler secret put API_BEARER_TOKEN`; получение и изменение запусков требуют bearer авторизацию. Worker ограничивает частоту запросов по IP; миграция 002_api_safety.sql добавляет идемпотентность и таблицу лимитов. Противоположное решение проверки нельзя записать поверх уже сохранённого.
+
 Каждая связь хранит ID документов, пути вида `fields.contract_reference` или `line_items[0].description`, строковые ID и исходный provenance с обеих сторон. Следующий этап может найти конкретные показатели в связанных JSON, а затем перейти по `source_ref`, `source_part_id`, `page_no`, `bbox`, `sheet_name` или `cell_address`. Никакой преобразователь входных результатов для этого не нужен. Точный контракт — `contracts/output.schema.json`.
 
-Storage D1 независим: проект владеет миграцией `migrations/0001_initial.sql` и принимает JSON через API. Таблицы Structured Extraction он не читает.
+Storage D1 независим: проект владеет миграцией `migrations/0001_initial.sql` and `migrations/0002_api_safety.sql` и принимает JSON через API. Таблицы Structured Extraction он не читает.
 
 Для Cloudflare deployment создайте собственную D1 базу командой `npx wrangler d1 create kfz-document-linking`, укажите выданный `database_id` в `wrangler.toml`, примените `npx wrangler d1 migrations apply DB --remote` и выполните `npm run deploy`.
 
@@ -49,8 +52,9 @@ Storage D1 независим: проект владеет миграцией `m
 
 ```powershell
 npm test
+npm run test:polza
 npm run typecheck
 npm run build
 ```
 
-Интеграционный smoke вызов Polza выполняется командой `npm test` только если в окружении доступен `POLZA_API_KEY`; он ограничен одним запросом. Для локальной проверки браузера запустите Worker, откройте страницу, выполните демонстрационный поиск, откройте доказательство, подтвердите/отклоните связь и проверьте скачанный JSON.
+Живой интеграционный тест Polza ограничен одним запросом за запуск. Записанный результат последнего прогона находится в `docs/polza-integration-test.md`. Для проверки нужен `POLZA_API_KEY`. Для локальной проверки интерфейса запустите Worker, откройте страницу, загрузите демонстрационный набор, выполните поиск, откройте доказательство и проверьте JSON экспорт.

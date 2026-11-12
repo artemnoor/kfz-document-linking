@@ -3,12 +3,21 @@ info:
   title: KFZ Document Linking API
   version: 1.0.0
   description: Связывание результатов Structured Extraction. HTTP API не обращается к БД предыдущего сервиса.
+  security:
+    - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API_BEARER_TOKEN
 servers:
   - url: http://127.0.0.1:8791
 paths:
   /api/health:
     get:
       summary: Проверка готовности
+      security: []
       responses:
         '200': { description: Сервис доступен }
   /api/linking-runs:
@@ -18,15 +27,34 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: array, items: { $ref: './contracts/input.schema.json' } }
+            schema:
+              oneOf:
+                - type: array
+                  items: { $ref: './contracts/input.schema.json' }
+                - type: object
+                  required: [documents]
+                  properties:
+                    documents:
+                      type: array
+                      items: { $ref: './contracts/input.schema.json' }
       responses:
         '201': { description: Результат соответствует output contract 1.0.0, content: { application/json: { schema: { $ref: './contracts/output.schema.json' } } } }
+        '200': { description: Повторный идемпотентный запрос возвращает сохранённый результат }
+        '401': { description: Отсутствует или неверен bearer token }
+        '409': { description: Idempotency-Key повторно использован с другим содержимым }
+        '413': { description: Превышен лимит размера тела запроса }
+        '429': { description: Превышен лимит частоты запросов }
         '422': { description: Вход несовместим; тело содержит diagnostics с индексом, JSON-путём и описанием }
+  /api/demo:
+    get:
+      summary: Получить встроенный демонстрационный набор Structured Extraction
+      responses:
+        '200': { description: Встроенный пример }
   /api/linking-runs/{id}:
     get:
       summary: Получить сохранённый запуск
       parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
-      responses: { '200': { description: Result JSON }, '404': { description: Не найден } }
+      responses: { '200': { description: Result JSON }, '401': { description: Не авторизован }, '404': { description: Не найден } }
   /api/linking-runs/{runId}/links/{linkId}:
     patch:
       summary: Подтвердить или отклонить связь специалистом
@@ -38,4 +66,4 @@ paths:
         content:
           application/json:
             schema: { type: object, required: [status], properties: { status: { enum: [confirmed, rejected] } } }
-      responses: { '200': { description: Обновлённый результат }, '404': { description: Не найден } }
+      responses: { '200': { description: Обновлённый результат }, '401': { description: Не авторизован }, '404': { description: Не найден }, '409': { description: Решение уже принято или есть параллельное изменение } }
