@@ -56,27 +56,39 @@ test("startup recovery requeues a database job whose completed BullMQ entry was 
   const pool = postgres(databaseUrl!, { max: 5 }), storage = new PostgresStorage(pool), recoveryQueue = createAnalysisQueue(redisUrl!, queueName);
   const queueConnection = new IORedis(redisUrl!, { maxRetriesPerRequest: null }), workerConnection = new IORedis(redisUrl!, { maxRetriesPerRequest: null });
   const queue = new Queue(queueName, { connection: queueConnection });
-  const worker = new Worker(queueName, async () => ({ skipped: true }), { connection: workerConnection, concurrency: 1 });
-  const id = randomUUID();
+  const id = randomUUID(), failedId = randomUUID();
+  let worker: Worker | undefined = new Worker(queueName, async job => {
+    if (job.data.job_id === failedId) throw new Error("synthetic terminal queue failure");
+    return { skipped: true };
+  }, { connection: workerConnection, concurrency: 1 });
   try {
     await runMigrations(pool);
     await storage.createJob({ id, key: `recovery:${id}`, payloadHash: `recovery-hash:${id}`, payload: JSON.stringify({ documents: [] }) });
+    await storage.createJob({ id: failedId, key: `recovery:${failedId}`, payloadHash: `recovery-hash:${failedId}`, payload: JSON.stringify({ documents: [] }) });
     await storage.claimJob(id, -1_000);
+    await storage.claimJob(failedId, -1_000);
     await recoveryQueue.enqueue(id);
+    await queue.add("analyze-document-set", { job_id: failedId }, { jobId: failedId, attempts: 1 });
     const deadline = Date.now() + 10_000;
     let queued = await queue.getJob(id);
     while ((!queued || await queued.getState() !== "completed") && Date.now() < deadline) { await new Promise(resolve => setTimeout(resolve, 100)); queued = await queue.getJob(id); }
     assert.ok(queued); assert.equal(await queued.getState(), "completed");
+    let failed = await queue.getJob(failedId);
+    while ((!failed || await failed.getState() !== "failed") && Date.now() < deadline) { await new Promise(resolve => setTimeout(resolve, 100)); failed = await queue.getJob(failedId); }
+    assert.ok(failed); assert.equal(await failed.getState(), "failed");
     await worker.pause(true);
-    assert.equal(await recoverPendingJobs(storage, recoveryQueue), 1);
-    queued = await queue.getJob(id);
-    assert.ok(queued);
-    const recoveredState = await queued.getState();
-    assert.ok(["waiting", "active"].includes(recoveredState), `recovery must replace an obsolete completed queue entry (got ${recoveredState})`);
+    await worker.close();
+    worker = undefined;
+    assert.equal(await recoverPendingJobs(storage, recoveryQueue), 2);
+    for (const recoveredId of [id, failedId]) {
+      const recovered = await queue.getJob(recoveredId);
+      assert.ok(recovered); assert.equal(await recovered.getState(), "waiting", `recovery must atomically requeue the obsolete terminal entry ${recoveredId}`);
+      assert.equal(recovered.attemptsMade, 0, "recovered jobs start with a fresh BullMQ retry budget while PostgreSQL retains analysis checkpoints");
+    }
   } finally {
-    await worker.close(); await queue.close(); await recoveryQueue.close();
+    if (worker) await worker.close(); await queue.close(); await recoveryQueue.close();
     await queueConnection.quit(); await workerConnection.quit();
-    await pool`DELETE FROM analysis_jobs WHERE id=${id}`;
+    await pool`DELETE FROM analysis_jobs WHERE id=${id} OR id=${failedId}`;
     await pool.end({ timeout: 5 });
   }
 });

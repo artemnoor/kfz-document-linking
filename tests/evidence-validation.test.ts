@@ -40,15 +40,22 @@ test("evidence rejects missing paths, mismatched raw values and prototype access
   }
 });
 
-test("available provenance must contain the extraction source_value in its source_text", () => {
+test("source text normalization handles OCR formatting and reports uncertain OCR without invalidating paths", () => {
   const source = document("contract-2026-0315") as Extraction, entry = (source as any).fields.contract_number;
   const path = "fields.contract_number.value";
-  entry.provenance.source_text = "different OCR fragment";
+  entry.provenance.source_text = "КД — 24/03–15";
   const checked = validateEvidenceSide({ document: source, expectedDocumentId: source.document_id, reportedDocumentId: source.document_id, path, rawValue: entry.value });
-  assert.ok(checked.reasons.includes("source_text_value_mismatch"));
+  assert.equal(checked.valid, true);
+  assert.deepEqual(checked.warnings, []);
+
+  entry.provenance.source_text = "КД-24/03-1S";
+  const uncertain = validateEvidenceSide({ document: source, expectedDocumentId: source.document_id, reportedDocumentId: source.document_id, path, rawValue: entry.value });
+  assert.equal(uncertain.valid, true, "the path and provenance are real even when OCR text differs");
+  assert.ok(uncertain.warnings.includes("source_text_value_mismatch"));
   entry.provenance.source_text = entry.source_value;
   const supported = validateEvidenceSide({ document: source, expectedDocumentId: source.document_id, reportedDocumentId: source.document_id, path, rawValue: entry.value });
   assert.equal(supported.valid, true);
+  assert.deepEqual(supported.warnings, []);
 });
 
 test("row evidence requires an existing row and a path that crosses that row", () => {

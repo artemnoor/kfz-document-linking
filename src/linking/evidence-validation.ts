@@ -3,6 +3,7 @@ import type { Evidence } from "./types";
 
 export type EvidenceIssueCode = "invalid_document_reference" | "invalid_link_metadata" | "evidence_source_direction_mismatch" | "unsafe_or_invalid_json_path" | "json_path_not_found" | "raw_value_mismatch" | "provenance_missing" | "provenance_document_mismatch" | "source_unavailable" | "source_text_missing" | "source_text_value_mismatch" | "row_id_not_found" | "row_id_not_cited_by_path" | "row_provenance_mismatch";
 export type InvalidRelationshipDiagnostic = { proposal_index: number; relationship_type?: string; source_document_id?: string; target_document_id?: string; reason_codes: EvidenceIssueCode[]; evidence_issues: { evidence_index: number; reason_codes: EvidenceIssueCode[]; source_path?: string; target_path?: string }[]; proposal: unknown };
+export type EvidenceValidation = { valid: boolean; evidence?: Evidence["source"]; reasons: EvidenceIssueCode[]; warnings: EvidenceIssueCode[] };
 type PathSegment = string | number;
 
 function parseJsonPath(path: string): PathSegment[] | null {
@@ -95,10 +96,23 @@ export function rowIdExists(doc: Extraction, rowId: string): boolean {
   return visit(doc);
 }
 
-export function validateEvidenceSide(args: { document: Extraction; expectedDocumentId: string; reportedDocumentId: unknown; path: unknown; rawValue: unknown; rowId?: string }): { valid: boolean; evidence?: Evidence["source"]; reasons: EvidenceIssueCode[] } {
+function normalizeSourceText(value: string): string {
+  return value.normalize("NFKC")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+    .replace(/[‐‑‒–—−]/g, "-")
+    .replace(/[“”„]/g, '"').replace(/[‘’]/g, "'")
+    .replace(/[\u00A0\u202F]/g, " ")
+    .toLocaleLowerCase("und")
+    .replace(/\s+/gu, " ")
+    .replace(/\s*([\-./,:;])\s*/gu, "$1")
+    .trim();
+}
+
+export function validateEvidenceSide(args: { document: Extraction; expectedDocumentId: string; reportedDocumentId: unknown; path: unknown; rawValue: unknown; rowId?: string }): EvidenceValidation {
   const reasons: EvidenceIssueCode[] = [];
+  const warnings: EvidenceIssueCode[] = [];
   if (args.reportedDocumentId !== args.expectedDocumentId) reasons.push("evidence_source_direction_mismatch");
-  if (typeof args.path !== "string" || !parseJsonPath(args.path)) return { valid: false, reasons: [...reasons, "unsafe_or_invalid_json_path"] };
+  if (typeof args.path !== "string" || !parseJsonPath(args.path)) return { valid: false, reasons: [...reasons, "unsafe_or_invalid_json_path"], warnings };
   const value = resolveJsonPath(args.document, args.path);
   if (value === undefined) reasons.push("json_path_not_found");
   const rawValue = entryValue(value);
@@ -112,17 +126,17 @@ export function validateEvidenceSide(args: { document: Extraction; expectedDocum
     if (provenance.source_available === false) reasons.push("source_unavailable");
     if (typeof provenance.source_text !== "string" || provenance.source_text.trim().length === 0) reasons.push("source_text_missing");
     const sourceValue = extractionEntry && typeof extractionEntry === "object" ? ownGet(extractionEntry, "source_value") : undefined;
-    if (provenance.source_available !== false && typeof sourceValue === "string" && sourceValue.length > 0 && typeof provenance.source_text === "string" && !provenance.source_text.includes(sourceValue)) reasons.push("source_text_value_mismatch");
+    if (provenance.source_available !== false && typeof sourceValue === "string" && sourceValue.length > 0 && typeof provenance.source_text === "string" && !normalizeSourceText(provenance.source_text).includes(normalizeSourceText(sourceValue))) warnings.push("source_text_value_mismatch");
     if (args.rowId && provenance.row_id && provenance.row_id !== args.rowId) reasons.push("row_provenance_mismatch");
   }
   if (args.rowId) {
     if (!rowIdExists(args.document, args.rowId)) reasons.push("row_id_not_found");
     if (!pathContainsRowId(args.document, args.path, args.rowId)) reasons.push("row_id_not_cited_by_path");
   }
-  if (reasons.length) return { valid: false, reasons };
+  if (reasons.length) return { valid: false, reasons, warnings };
   const normalized = args.path.endsWith(".value") || args.path.endsWith(".source_value") ? resolveJsonPath(args.document, args.path.replace(/\.(value|source_value)$/, "")) : value;
   const normalizedValue = normalized && typeof normalized === "object" ? (normalized as any).value ?? (normalized as any).source_value ?? rawValue : rawValue;
-  return { valid: true, reasons, evidence: { document_id: args.expectedDocumentId, path: args.path, raw_value: rawValue, normalized_value: typeof normalizedValue === "string" ? normalizedValue : JSON.stringify(normalizedValue), provenance } };
+  return { valid: true, reasons, warnings, evidence: { document_id: args.expectedDocumentId, path: args.path, raw_value: rawValue, normalized_value: typeof normalizedValue === "string" ? normalizedValue : JSON.stringify(normalizedValue), provenance } };
 }
 
 export function explainEvidenceIssue(code: EvidenceIssueCode): string {
@@ -137,7 +151,7 @@ export function explainEvidenceIssue(code: EvidenceIssueCode): string {
     provenance_document_mismatch: "provenance указывает на другой документ",
     source_unavailable: "исходный фрагмент помечен как недоступный",
     source_text_missing: "в provenance нет доступного исходного текста",
-    source_text_value_mismatch: "исходный source_value не содержится в source_text этого provenance",
+    source_text_value_mismatch: "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка",
     row_id_not_found: "указанный row_id отсутствует в этом документе",
     row_id_not_cited_by_path: "JSON-путь доказательства не проходит через указанную строку",
     row_provenance_mismatch: "provenance строки указывает на другой row_id",

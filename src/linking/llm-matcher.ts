@@ -148,6 +148,7 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
     for (const [proposalIndex, proposed] of parsed.links.entries()) {
       const sourceDoc = docMap.get(proposed?.source_document_id), targetDoc = docMap.get(proposed?.target_document_id);
       const reasons = new Set<InvalidRelationshipDiagnostic["reason_codes"][number]>(), evidenceIssues: InvalidRelationshipDiagnostic["evidence_issues"] = [];
+      let evidenceNeedsReview = false;
       if (!sourceDoc || !targetDoc || sourceDoc.document_id === targetDoc.document_id) reasons.add("invalid_document_reference");
       if (typeof proposed?.relationship_type !== "string" || !proposed.relationship_type.trim()) reasons.add("invalid_link_metadata");
       if (!Array.isArray(proposed?.evidence) || proposed.evidence.length === 0) reasons.add("provenance_missing");
@@ -156,11 +157,15 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
         const s = item?.source, t = item?.target;
         const source = validateEvidenceSide({ document: sourceDoc, expectedDocumentId: sourceDoc.document_id, reportedDocumentId: s?.document_id, path: s?.path, rawValue: s?.raw_value });
         const target = validateEvidenceSide({ document: targetDoc, expectedDocumentId: targetDoc.document_id, reportedDocumentId: t?.document_id, path: t?.path, rawValue: t?.raw_value });
-        const issueCodes = [...new Set([...source.reasons, ...target.reasons])];
+        const issueCodes = [...new Set([...source.reasons, ...source.warnings, ...target.reasons, ...target.warnings])];
         if (!source.valid || !target.valid || !source.evidence || !target.evidence) {
           issueCodes.forEach(code => reasons.add(code));
           evidenceIssues.push({ evidence_index: evidenceIndex, reason_codes: issueCodes, ...(typeof s?.path === "string" ? { source_path: s.path } : {}), ...(typeof t?.path === "string" ? { target_path: t.path } : {}) });
           continue;
+        }
+        if (issueCodes.length) {
+          evidenceNeedsReview = true;
+          evidenceIssues.push({ evidence_index: evidenceIndex, reason_codes: issueCodes, ...(typeof s?.path === "string" ? { source_path: s.path } : {}), ...(typeof t?.path === "string" ? { target_path: t.path } : {}) });
         }
         evidence.push({ source: source.evidence, target: target.evidence, signal: String(item.signal ?? "document_context"), explanation: String(item.explanation ?? "") });
       }
@@ -177,7 +182,8 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
         invalidRelationshipDiagnostics.push({ proposal_index: proposalIndex, ...(typeof proposed?.relationship_type === "string" ? { relationship_type: proposed.relationship_type } : {}), ...(typeof proposed?.source_document_id === "string" ? { source_document_id: proposed.source_document_id } : {}), ...(typeof proposed?.target_document_id === "string" ? { target_document_id: proposed.target_document_id } : {}), reason_codes: [...reasons], evidence_issues: evidenceIssues, proposal: proposed });
         continue;
       }
-      links.push({ link_id: crypto.randomUUID(), relationship_type: proposed.relationship_type.trim(), source_document_id: sourceDoc.document_id, target_document_id: targetDoc.document_id, ...(sourceRow ? { source_row_id: sourceRow } : {}), ...(targetRow ? { target_row_id: targetRow } : {}), evidence, explanation: String(proposed.explanation ?? ""), confidence, status: requestedStatus, verification_status: "not_reviewed", detection_method: "llm", conflicts: Array.isArray(proposed.conflicts) ? proposed.conflicts.map(String) : [], alternatives: Array.isArray(proposed.alternatives) ? proposed.alternatives.map(String) : [] });
+      if (evidenceNeedsReview) invalidRelationshipDiagnostics.push({ proposal_index: proposalIndex, relationship_type: proposed.relationship_type.trim(), source_document_id: sourceDoc.document_id, target_document_id: targetDoc.document_id, reason_codes: ["source_text_value_mismatch"], evidence_issues: evidenceIssues, proposal: proposed });
+      links.push({ link_id: crypto.randomUUID(), relationship_type: proposed.relationship_type.trim(), source_document_id: sourceDoc.document_id, target_document_id: targetDoc.document_id, ...(sourceRow ? { source_row_id: sourceRow } : {}), ...(targetRow ? { target_row_id: targetRow } : {}), evidence, explanation: String(proposed.explanation ?? ""), confidence, status: evidenceNeedsReview && requestedStatus !== "rejected" ? "review" : requestedStatus, verification_status: "not_reviewed", detection_method: "llm", conflicts: Array.isArray(proposed.conflicts) ? proposed.conflicts.map(String) : [], alternatives: Array.isArray(proposed.alternatives) ? proposed.alternatives.map(String) : [] });
     }
     return { complete: true, phase: "complete", links, unlinkedDocumentIds: parsed.unlinked_document_ids.filter((id: unknown) => typeof id === "string" && docMap.has(id)), invalidRelationshipDiagnostics, calls, errors: 0, inputTokens: inputTokens || undefined, outputTokens: outputTokens || undefined, costAmount: hasCost ? costAmount : null, costCurrency: hasCost ? costCurrency : null, durationMs: Date.now() - runStartedAt, model: model, provider: "Polza AI", analysisSummary: String(parsed.analysis_summary ?? ""), strategy: staged ? "document_fragments_then_full_set" : "full_set", estimatedInputTokens };
   } catch (error: any) { throw error; }

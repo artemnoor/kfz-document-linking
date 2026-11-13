@@ -86,6 +86,25 @@ test("invalid evidence paths and fabricated values are discarded", async () => {
   finally { globalThis.fetch = originalFetch; }
 });
 
+test("source text OCR uncertainty keeps the Gemma link for review with a diagnostic", async () => {
+  const docs = structuredClone(fixtureDocs.filter(doc => ["contract-2026-0315", "addendum-2026-04"].includes(doc.document_id))) as any[];
+  const source = docs.find(doc => doc.document_id === "contract-2026-0315");
+  const target = docs.find(doc => doc.document_id === "addendum-2026-04");
+  source.fields.contract_number.provenance.source_text = "КД-24/03-1S";
+  const relationship = { relationship_type: "amends", source_document_id: source.document_id, target_document_id: target.document_id, evidence: [{ source: { document_id: source.document_id, path: "fields.contract_number.value", raw_value: source.fields.contract_number.value }, target: { document_id: target.document_id, path: "fields.base_contract.value", raw_value: target.fields.base_contract.value }, signal: "reference", explanation: "The addendum names the base agreement." }], confidence: 0.9, status: "confirmed" };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [relationship], unlinked_document_ids: [], analysis_summary: "One OCR fragment needs review.", context_requests: [] }) } }] }), { status: 200 });
+  try {
+    const result = await linkDocuments(docs, { llm: { enabled: true, apiKey: "test-only", maxCalls: 52, maxInputTokens: 999999, systemPrompt } });
+    assert.equal(result.links.length, 1);
+    assert.equal(result.links[0].status, "review");
+    assert.equal(result.review_required[0].link_id, result.links[0].link_id);
+    assert.equal(result.link_validation_diagnostics.length, 1);
+    assert.ok(result.link_validation_diagnostics[0].reason_codes.includes("source_text_value_mismatch"));
+    assert.equal(linkingOutputSchema.safeParse(result).success, true);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("LLM-only output satisfies the versioned stage 4 contract", async () => {
   const docs = fixtureDocs, originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [], unlinked_document_ids: docs.map(d => d.document_id), analysis_summary: "Complete set reviewed.", context_requests: [] }) } }], usage: { prompt_tokens: 100, completion_tokens: 10 } }), { status: 200 });
