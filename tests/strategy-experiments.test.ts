@@ -40,6 +40,36 @@ test("strategy B discovers first, selects exact references in a second pass, and
   } finally { mock.restore(); }
 });
 
+test("strategy B keeps malformed status and row-id proposals visible as review candidates", async () => {
+  const input = docs(), refs = buildEvidenceRegistry(input), src = refs.find(ref => ref.document_id === "doc-a" && ref.json_path === "source.value")!, target = refs.find(ref => ref.document_id === "doc-b" && ref.json_path === "source.value")!;
+  const malformed = { ...candidate("doc-a", "doc-b"), status: "unverified", source_row_id: "source.value" };
+  const mock = fetchJson((_request, index) => index === 0
+    ? { candidates: [malformed], unlinked_document_ids: [], analysis_summary: "Candidate retained" }
+    : { evidence: [{ candidate_index: 0, evidence: [{ source_reference_id: src.reference_id, target_reference_id: target.reference_id, signal: "context", explanation: "exact source elements" }] }] });
+  try {
+    const result = await runLinkingStrategy("B", input, base(input));
+    assert.equal(result.candidates.length, 1); assert.equal(result.links.length, 1);
+    assert.equal(result.links[0].status, "review"); assert.equal(result.links[0].source_row_id, undefined);
+    assert.match(result.diagnostics[0].reason, /invalid_status|row_id/);
+    assert.equal((result.candidates[0] as any).model_status, "unverified");
+  } finally { mock.restore(); }
+});
+
+test("LLM evidence pass, not a synonym dictionary, chooses semantic duplicate candidates", async () => {
+  const input = docs(), refs = buildEvidenceRegistry(input), src = refs.find(ref => ref.document_id === "doc-a" && ref.json_path === "source.value")!, target = refs.find(ref => ref.document_id === "doc-b" && ref.json_path === "source.value")!;
+  const proposals = [candidate("doc-a", "doc-b", "amends"), candidate("doc-a", "doc-b", "amendment_of")];
+  const mock = fetchJson((_request, index) => index === 0
+    ? { candidates: proposals, unlinked_document_ids: [], analysis_summary: "Two phrasings" }
+    : { semantic_duplicate_groups: [{ candidate_indices: [0, 1], canonical_candidate_index: 0, canonical_relationship_type: "amends" }], evidence: [{ candidate_index: 0, evidence: [{ source_reference_id: src.reference_id, target_reference_id: target.reference_id, signal: "context", explanation: "same relation" }] }] });
+  try {
+    const result = await runLinkingStrategy("B", input, base(input));
+    assert.equal(result.candidates.length, 2); assert.equal(result.links.length, 1);
+    assert.equal(result.links[0].relationship_type, "amends");
+    assert.deepEqual(result.semantic_deduplication?.collapsed_candidate_indices, [1]);
+    assert.equal(mock.requests[1].messages[0].content.includes("не используй словарь типов связей"), true);
+  } finally { mock.restore(); }
+});
+
 test("strategy C unions independent candidates, lets critic add a candidate, debates only on model request, then validates evidence", async () => {
   const input = docs(), refs = buildEvidenceRegistry(input), src = refs.find(ref => ref.document_id === "doc-a" && ref.json_path === "source.value")!, target = refs.find(ref => ref.document_id === "doc-b" && ref.json_path === "source.value")!;
   const allCandidates = [candidate("doc-a", "doc-b"), candidate("doc-b", "doc-a", "reverse-context")];

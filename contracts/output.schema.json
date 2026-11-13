@@ -211,6 +211,10 @@
           "target_document_id": {
             "type": "string"
           },
+          "candidate_status": {
+            "type": "string",
+            "const": "review"
+          },
           "reason_codes": {
             "type": "array",
             "items": {

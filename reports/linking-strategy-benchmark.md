@@ -53,3 +53,43 @@ Each JSON file in `reports/strategy-benchmark-runs/` records model responses whe
 ## Limitations
 
 This is a small pilot on fixed fixture inputs, not an independently labelled benchmark. Reported costs from Polza are used when available; requests with no usage because of invalid JSON or timeout retain their full preflight reserve as a conservative cost bound. Rates are twice the published Polza model page prices (input 14.52 RUB/M, output 79.8 RUB/M). A request is pre-reserved before sending; a strategy may remain partial if the remaining budget is insufficient.
+
+## Follow-up pilot: status/evidence handling (prompt 1.1.0)
+
+Generated: 2026-11-13. This is an additional experiment directory and budget window; the original pilot files and numbers above were not edited. The run used status/row-id instructions and strategy prompts 1.1.0, including LLM-directed semantic duplicate groups for B/C. Technical format errors preserve proposals as review/unverified records. Gemma returns semantic duplicate groups; application code validates only their indices and does not use a relationship-type synonym list. After the run, the shared A system prompt also gained an instruction to describe a semantic relation once; its current SHA-256 is `8b31e377cc4d8ce33bc4abba2ba07aaeccaac229bc09c8ab3e28b04a3e29f574`. That post-run instruction is not represented by the calls here; the run ledger records the prompt hash actually sent.
+
+The independent annotation workflow now has ten source-pinned packets, described in `evaluation/annotation-packets/README.md`. They are still unadjudicated, so no precision/recall/F1 or relationship correctness values can be computed.
+
+| Bundle | Repeat | Strategy | Candidate records | LLM duplicate groups collapsed | Links emitted | Confirmed | Review | Diagnostics / unverified | Evidence pairs | Requests | Input / output tokens | Cost or reserve (RUB) | Seconds | Outcome |
+|---|---:|:---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Small ambiguous demo | 1 | A | 1 | 0 | 0 | 0 | 0 | 1 / 1 | 0 | 2 | 7,037 / 898 | 0.101824 | 13.04 | complete |
+| Small ambiguous demo | 1 | B | 3 | 0 | 0 | 0 | 0 | 3 / 3 | 0 | 2 | 5,972 / 975 | 0.052249 | 6.20 | complete |
+| Small ambiguous demo | 1 | C | 4 | 1 | 0 | 0 | 0 | 3 / 3 | 0 | 5 | 15,703 / 3,235 | 0.248709 | 44.83 | complete |
+| Small ambiguous demo | 2 | A | 2 | — | — | — | — | — | — | 2 | 3,526 / 803 | 0.804315 incl. timeout reserve | 11.68 observed | Polza timeout |
+| Small ambiguous demo | 2 | B | 3 | 1 | 0 | 0 | 0 | 2 / 2 | 0 | 2 | 5,968 / 934 | 0.050538 | 54.35 | complete |
+| Small ambiguous demo | 2 | C | 4 | — | — | — | — | — | — | 3 | 8,918 / 7,303 | 0.352456 | 96.23 | invalid JSON; saved raw response |
+| Actual SE 1.2.0 contract + addendum | 1 | A | 4 | 0 | 2 | 1 | 1 | 2 / 2 | 5 | 3 | 333,626 / 2,392 | 2.407477 | 92.51 | complete |
+| Actual SE 1.2.0 contract + addendum | 1 | B | 3 | 0 | 2 | 0 | 2 | 3 / 1 | 3 | 2 | 220,579 / 1,149 | 1.549762 | 88.00 | complete |
+| Actual SE 1.2.0 contract + addendum | 1 | C | 4 after exact duplicate union | — | — | — | — | — | — | 2 | 220,058 / 1,674 | 2.441400 | 41.78 | only independent agents completed; budget stopped before critic |
+
+This run attempted 23 Polza requests: 22 returned usage, and one timed out without usage. Reported/estimated spend was 7.254792 RUB; the timeout retained a 0.753939 RUB reserve. Total exposure was 8.008731 RUB against the 10 RUB cap. The next C critic call was rejected by the preflight guard and was not sent. No paid requests were made by unit or contract tests.
+
+On the same actual two-document bundle, A emitted two links (one confirmed, one review) and two diagnostics; B emitted two review links and three diagnostics from three candidates. C's two independent passes each returned four entries with the same displayed relationship labels, but C did not reach critic, evidence selection, or technical validation. Thus C's apparent union is not an evaluated graph, and its candidate count cannot be compared as correctness. The new A/B result differs from the old pilot (A: one confirmed; B: three emitted, two confirmed and one review); prompt and validator behavior changed, and neither result has expert labels. This difference does not prove that one version or strategy is more accurate.
+
+Concrete technical diagnostics from the actual run: B returned row IDs that did not match the selected source/target evidence references; A reported an OCR/source-text mismatch for a price-change proposal and missing/mismatched provenance for another proposal. These describe evidence-format/verification outcomes only. They do not establish whether those relationships are true or false, and no omitted relationship can be called a miss without expert labels.
+
+The small bundle has no reliable source provenance. A/B emitted no links, and all completed small-bundle candidates remained unverified. C's first run used five requests, collapsed one Gemma-declared semantic duplicate group, and still had three unverified candidates. In the second repeat A timed out and C returned invalid JSON. Therefore repeat coverage is incomplete and does not establish stable quality. B's candidate graph Jaccard on its two small-bundle runs was 0; this measures only output repeatability, not correctness.
+
+The artifacts under `reports/strategy-quality-runs-2026-11-13/` contain full model response bodies, per-call usage/cost/duration, diagnostics, prompt/code hashes, failures, and the budget ledger. The historical directory `reports/strategy-benchmark-runs/` remains unchanged.
+
+### What this pilot can and cannot answer
+
+- **B vs A correctness:** unknown. On one actual bundle, their accepted counts match at two, but their statuses/evidence differ. No adjudicated labels identify correct, false, or missed links.
+- **Whether C finds omissions:** unknown. The independent agents returned the same visible relationship labels in the one real bundle; C stopped before critic and evidence checking.
+- **Critic and debate value:** not measured. The real C critic was not sent; the completed small C run included critic/debate behavior, but lacks provenance and gold labels.
+- **Cost/time:** measured for the calls above. B cost 1.549762 RUB and took 88 seconds on the real bundle; A cost 2.407477 RUB and took 92.51 seconds. C's 2.441400 RUB is only for its two independent calls and is not a completed strategy cost.
+- **Recommendation:** no winner. Keep A as the production strategy and use these as diagnostics only until independent annotation and matched repeated A/B/C runs are available.
+
+The request budget was respected. A complete A/B/C comparison on the actual bundle was not possible within the remaining reserved budget: the C critic was blocked before send. Do not interpret partial C as zero links or a failed quality result.
+
+Post-run code note: diagnostics now expose additive `candidate_status: \"review\"` in the existing output contract so the UI labels preserved technical candidates as review items. This display/schema addition was unit and contract tested after the live calls; it does not retroactively change their recorded results or hashes.

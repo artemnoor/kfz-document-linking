@@ -151,6 +151,44 @@ test("source text OCR uncertainty keeps the Gemma link for review with a diagnos
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("malformed status and path-shaped row_id retain the model relation as review", async () => {
+  const docs = fixtureDocs.filter(doc => ["contract-2026-0315", "addendum-2026-04"].includes(doc.document_id));
+  const registry = buildEvidenceRegistry(docs), sourceRef = registry.find(ref => ref.document_id === docs[0].document_id && ref.provenance?.source_available === true)!, targetRef = registry.find(ref => ref.document_id === docs[1].document_id && ref.provenance?.source_available === true)!;
+  const proposal = { relationship_type: "amends", source_document_id: docs[0].document_id, target_document_id: docs[1].document_id, source_row_id: sourceRef.json_path, evidence: [{ source_reference_id: sourceRef.reference_id, target_reference_id: targetRef.reference_id, signal: "context", explanation: "The addendum changes terms." }], confidence: 0.8, status: "unverified" };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [proposal], unlinked_document_ids: [], analysis_summary: "Keep the uncertain proposal visible.", context_requests: [] }) } }] }), { status: 200 });
+  try {
+    const result = await linkDocuments(docs, { llm: { enabled: true, apiKey: "test-only", maxCalls: 52, maxInputTokens: 999999, systemPrompt } });
+    assert.equal(result.links.length, 1); assert.equal(result.links[0].status, "review");
+    assert.equal(result.links[0].source_row_id, undefined);
+    assert.equal(result.link_validation_diagnostics.length, 1);
+    assert.ok(result.link_validation_diagnostics[0].reason_codes.includes("invalid_link_metadata"));
+    assert.ok(result.link_validation_diagnostics[0].reason_codes.includes("row_id_not_found"));
+    assert.equal(result.link_validation_diagnostics[0].candidate_status, "review");
+    assert.deepEqual(result.link_validation_diagnostics[0].proposal, proposal);
+    assert.equal(linkingOutputSchema.safeParse(result).success, true);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("a bad evidence citation does not discard another technically valid citation", async () => {
+  const docs = fixtureDocs.filter(doc => ["contract-2026-0315", "addendum-2026-04"].includes(doc.document_id));
+  const registry = buildEvidenceRegistry(docs), sourceRef = registry.find(ref => ref.document_id === docs[0].document_id && ref.provenance?.source_available === true)!, targetRef = registry.find(ref => ref.document_id === docs[1].document_id && ref.provenance?.source_available === true)!;
+  const proposal = { relationship_type: "amends", source_document_id: docs[0].document_id, target_document_id: docs[1].document_id, evidence: [{ source_reference_id: "invented", target_reference_id: "invented", signal: "bad", explanation: "unresolvable" }, { source_reference_id: sourceRef.reference_id, target_reference_id: targetRef.reference_id, signal: "valid", explanation: "exact source values" }], confidence: 0.8, status: "confirmed" };
+  const originalFetch = globalThis.fetch; let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    const content = calls === 1 ? { links: [proposal], unlinked_document_ids: [], analysis_summary: "One citation is valid.", context_requests: [] } : { corrections: [] };
+    return new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify(content) } }] }), { status: 200 });
+  };
+  try {
+    const result = await analyzeDocumentSet(docs, { apiKey: "test-only", timeoutMs: 1000, maxCalls: 52, maxInputTokens: 999999, systemPrompt });
+    assert.equal(result.links.length, 1); assert.equal(result.links[0].status, "review");
+    assert.equal(result.links[0].evidence.length, 1); assert.equal(result.invalidRelationshipDiagnostics.length, 1);
+    assert.equal(result.invalidRelationshipDiagnostics[0].resolution, "review_required");
+    assert.deepEqual(result.invalidRelationshipDiagnostics[0].proposal, proposal);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("LLM-only output satisfies the versioned stage 4 contract", async () => {
   const docs = fixtureDocs, originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [], unlinked_document_ids: docs.map(d => d.document_id), analysis_summary: "Complete set reviewed.", context_requests: [] }) } }], usage: { prompt_tokens: 100, completion_tokens: 10 } }), { status: 200 });
