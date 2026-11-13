@@ -4,7 +4,7 @@ This benchmark requires independent expert labels. Do not use Gemma responses, p
 
 ## Run protocol
 
-1. Use the fixed scenario bundles listed in `scenarios.json`; keep the source JSON and its hashes with the benchmark release.
+1. Use the candidate bundles listed in `scenarios.json`; the focus statements are coverage hypotheses, not labels. Independent reviewers must verify and, where needed, revise the scenario focus after inspecting the source JSON. Keep the source JSON and its hashes with the benchmark release.
 2. For each bundle, annotate all supported relationships, their direction, row IDs, and source/target evidence paths and raw values. An empty `gold_links` array is meaningful only after the reviewers confirm there are no supported links.
 3. Run the same model configuration and prompt multiple times. Save each complete Document Linking JSON result outside the source fixture directory.
 4. Add the prediction paths as `predictions_files` in `annotations.json`; the first run is scored against gold and all runs contribute to pairwise graph stability and usage/cost totals.
