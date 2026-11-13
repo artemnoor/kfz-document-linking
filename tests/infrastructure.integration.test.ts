@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
+import { createApp } from "../server/app";
 import { createAnalysisQueue } from "../server/queue";
 import { PostgresStorage } from "../server/storage";
 import { runMigrations } from "../server/migrate";
@@ -14,11 +15,12 @@ import { GEMMA_MODEL } from "../src/linking/llm-matcher";
 
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 const redisUrl = process.env.TEST_REDIS_URL ?? process.env.REDIS_URL;
-test("PostgreSQL persistence, exclusive claim and BullMQ retry/recovery", { skip: !databaseUrl || !redisUrl ? "Set DATABASE_URL and REDIS_URL to run infrastructure integration" : false }, async () => {
+test("API job creation, idempotency, PostgreSQL result persistence, exclusive claim and BullMQ retry", { skip: !databaseUrl || !redisUrl ? "Set DATABASE_URL and REDIS_URL to run infrastructure integration" : false }, async () => {
   const queueName = `document-linking-test-${randomUUID()}`;
   const pool = postgres(databaseUrl!, { max: 5 }), storage = new PostgresStorage(pool), queue = createAnalysisQueue(redisUrl!, queueName);
   const worker = startAnalysisWorker(redisUrl!, { storage, apiKey: "test-key", maxCalls: 52, maxInputTokens: 180_000, timeoutMs: 5000, maxRunMs: 90_000, systemPrompt: "Analyze the provided documents. Return JSON with links, unlinked_document_ids, analysis_summary and context_requests." }, queueName);
-  const id = randomUUID(), lockId = randomUUID(), key = `integration:${id}`, payloadHash = `hash:${id}`;
+  const lockId = randomUUID(), key = `integration:${randomUUID()}`, payloadHash = `hash:${key}`;
+  let id = "";
   const documents = ["contract-2026-0315.json", "addendum-2026-04.json"].map(name => JSON.parse(readFileSync(`fixtures/upstream-structured-extraction-1.2.0/${name}`, "utf8")));
   let modelCalls = 0; const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
@@ -31,8 +33,16 @@ test("PostgreSQL persistence, exclusive claim and BullMQ retry/recovery", { skip
     await storage.createJob({ id: lockId, key: `${key}:lock`, payloadHash: `${payloadHash}:lock`, payload: JSON.stringify({ documents }) });
     const claims = await Promise.all([storage.claimJob(lockId, 30_000), storage.claimJob(lockId, 30_000)]);
     assert.equal(claims.filter(Boolean).length, 1, "one job must not be claimed twice concurrently");
-    await storage.createJob({ id, key, payloadHash, payload: JSON.stringify({ documents }) });
-    assert.equal(await recoverPendingJobs(storage, queue), 2, "startup should re-enqueue persisted unfinished jobs");
+    const app = createApp({ storage, queue, config: { apiToken: "integration-api-token", polzaApiKey: "integration-polza-key", llmEnabled: true, maxCalls: 52, timeoutMs: 5000, maxInputTokens: 180_000, maxRunMs: 90_000, systemPrompt: "Analyze the provided documents. Return JSON with links, unlinked_document_ids, analysis_summary and context_requests." } });
+    const requestOptions = { method: "POST", headers: { Authorization: "Bearer integration-api-token", "Content-Type": "application/json", "Idempotency-Key": key }, body: JSON.stringify({ documents }) };
+    const created = await app.request("/api/linking-jobs", requestOptions);
+    assert.equal(created.status, 202);
+    const createdBody = await created.json() as { job_id: string; status: string };
+    assert.equal(createdBody.status, "queued");
+    id = createdBody.job_id;
+    const duplicate = await app.request("/api/linking-jobs", requestOptions);
+    assert.equal(duplicate.status, 200);
+    assert.equal((await duplicate.json() as { job_id: string }).job_id, id, "idempotent API retries return the existing analysis job");
     const deadline = Date.now() + 30_000; let saved = await storage.readJob(id);
     while (saved?.status !== "completed" && saved?.status !== "failed" && Date.now() < deadline) { await new Promise(resolve => setTimeout(resolve, 250)); saved = await storage.readJob(id); }
     assert.equal(saved?.status, "completed", saved?.last_error ?? "BullMQ job did not complete");
@@ -42,16 +52,19 @@ test("PostgreSQL persistence, exclusive claim and BullMQ retry/recovery", { skip
     assert.equal(saved?.result_json?.processing_metadata.llm.model, GEMMA_MODEL);
     assert.equal(saved?.result_json?.processing_metadata.llm.calls, 2);
     assert.equal(modelCalls, 2, "one transient provider error should trigger one retry");
-    const idem = await storage.findJobByIdempotency(key); assert.equal(idem?.id, id);
+    const fetched = await app.request(`/api/linking-jobs/${id}`, { headers: { Authorization: "Bearer integration-api-token" } });
+    assert.equal(fetched.status, 200);
+    const fetchedBody = await fetched.json() as { status: string; result?: { linking_run_id: string } };
+    assert.equal(fetchedBody.status, "completed"); assert.equal(fetchedBody.result?.linking_run_id, saved?.run_id, "completed API retrieval returns the persisted analysis result");
   } finally {
     globalThis.fetch = originalFetch;
     await worker.worker.close(); await worker.connection.quit(); await queue.close();
-    await pool`DELETE FROM analysis_jobs WHERE id=${id} OR id=${lockId}`;
+    await pool`DELETE FROM analysis_jobs WHERE id=${lockId} OR (${id} <> '' AND id=${id})`;
     await pool.end({ timeout: 5 });
   }
 });
 
-test("startup recovery requeues a database job whose completed BullMQ entry was left stale", { skip: !databaseUrl || !redisUrl ? "Set DATABASE_URL and REDIS_URL to run infrastructure integration" : false }, async () => {
+test("startup recovery atomically requeues unfinished database jobs with stale completed or failed BullMQ entries", { skip: !databaseUrl || !redisUrl ? "Set DATABASE_URL and REDIS_URL to run infrastructure integration" : false }, async () => {
   const queueName = `document-linking-recovery-${randomUUID()}`;
   const pool = postgres(databaseUrl!, { max: 5 }), storage = new PostgresStorage(pool), recoveryQueue = createAnalysisQueue(redisUrl!, queueName);
   const queueConnection = new IORedis(redisUrl!, { maxRetriesPerRequest: null }), workerConnection = new IORedis(redisUrl!, { maxRetriesPerRequest: null });
