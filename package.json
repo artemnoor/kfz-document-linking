@@ -17,6 +17,7 @@
     "test:polza": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-polza.ps1",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "eval:links": "tsx scripts/evaluate-links.ts",
+    "eval:strategies": "tsx scripts/benchmark-linking-strategies.ts",
     "contracts:export": "tsx scripts/write-demo-fixtures.ts && tsx scripts/export-contract-schemas.ts",
     "demo:export": "tsx scripts/write-demo-result.ts",
     "compose:up": "docker compose up --build",

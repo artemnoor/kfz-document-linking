@@ -36,6 +36,15 @@ test("network errors are retryable, and model mismatch is permanent without leak
   } finally { globalThis.fetch = original; }
 });
 
+test("invalid JSON response is retained through an explicit observer without exposing credentials", async () => {
+  const original = globalThis.fetch; let retained: any;
+  globalThis.fetch = async () => new Response(JSON.stringify({ model: POLZA_MODEL, choices: [{ message: { content: "{broken" } }], usage: { prompt_tokens: 17, completion_tokens: 5 }, cost: 0.002 }), { status: 200 });
+  try {
+    await assert.rejects(requestPolzaJson({ ...args, onInvalidJsonResponse: response => { retained = response; } }), (error: any) => error.status === 502 && error.retryable);
+    assert.deepEqual(retained, { rawText: "{broken", model: POLZA_MODEL, promptTokens: 17, completionTokens: 5, cost: 0.002 });
+  } finally { globalThis.fetch = original; }
+});
+
 test("BullMQ retries only transient Polza errors with exponential delay and respects Retry-After", () => {
   assert.equal(isRetryableAnalysisError(new PolzaRequestError("unauthorized", 401, false)), false);
   assert.equal(isRetryableAnalysisError(new PolzaRequestError("balance", 402, false)), false);
