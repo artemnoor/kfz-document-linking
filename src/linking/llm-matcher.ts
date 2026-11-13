@@ -114,6 +114,9 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
       progressState!.phase = sourceContexts.length ? "reviewing_requested_source" : "resolving_relationships"; await checkpoint();
       context = `Анализ всего комплекта. Сводки ниже нужны только как навигация и сами по себе не являются доказательствами. Оригинальные запрошенные фрагменты передаются отдельно. Если важная деталь суммирована, пропущена или неоднозначна, запроси оригинал через context_requests. После получения исходного фрагмента пересмотри выводы.\n${JSON.stringify({ documents: documentSummaries, requested_source_fragments: sourceContexts })}`;
       if (approximateTokens(systemPrompt + context) > maxInputTokens) throw Object.assign(new Error("Промежуточные представления комплекта всё ещё превышают лимит контекста; они не обрезаны. Уменьшите размер пакета или настройте LLM_MAX_INPUT_TOKENS."), { status: 413 });
+    } else if (progressState.requested_source_fragments?.length) {
+      context = `Повторно проверь весь исходный комплект документов с учетом запрошенных тобой фрагментов. Полные исходные объекты сохранены без фильтрации; requested_source_fragments дополнительно выделяют точные оригинальные значения, пути и идентификаторы. Не запрашивай повторно уже переданные фрагменты; пересмотри вывод и верни итоговый JSON.\n${JSON.stringify({ documents, requested_source_fragments: progressState.requested_source_fragments })}`;
+      if (approximateTokens(systemPrompt + context) > maxInputTokens) throw Object.assign(new Error("Полный исходный комплект и запрошенные оригиналы превышают бюджет контекста. Данные не обрезаны."), { status: 413 });
     }
     let parsed: any;
     while (true) {
@@ -121,8 +124,7 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
       if (responseBody.finishReason === "length") throw Object.assign(new Error("Ответ Gemma достиг лимита генерации и был обрезан."), { status: 502 });
       parsed = responseBody.value;
       if (!Array.isArray(parsed.links) || !Array.isArray(parsed.unlinked_document_ids) || !Array.isArray(parsed.context_requests)) throw Object.assign(new Error("Ответ Gemma не соответствует структурированному контракту: links, unlinked_document_ids и context_requests обязательны."), { status: 502 });
-      if (!staged && parsed.context_requests.length) throw Object.assign(new Error("Gemma запросила дополнительный контекст, хотя получила весь комплект исходных документов."), { status: 502 });
-      if (!staged || parsed.context_requests.length === 0) break;
+      if (parsed.context_requests.length === 0) break;
       const requested = progressState!.requested_source_fragments ??= [];
       const known = new Set(requested.map(item => `${item.document_id}:${item.chunk_index}`));
       const newlyRequested: NonNullable<AnalysisProgressState["requested_source_fragments"]> = [];
@@ -139,7 +141,9 @@ export async function analyzeDocumentSet(documents: Extraction[], options: { api
       }
       if (!newlyRequested.length) throw Object.assign(new Error("Gemma повторно запросила только уже переданные фрагменты, но не завершила анализ."), { status: 502 });
       requested.push(...newlyRequested); progressState!.context_rounds = (progressState!.context_rounds ?? 0) + 1; progressState!.phase = "reviewing_requested_source"; await checkpoint();
-      context = `Повторный анализ полного комплекта после запроса оригинальных фрагментов. Сводки ниже — только навигация. requested_source_fragments содержат точные оригинальные значения, пути и идентификаторы. Пересмотри связи с их учетом и при необходимости запроси дополнительные фрагменты.\n${JSON.stringify({ documents: documents.map(document => ({ document_id: document.document_id, document_type: document.document_type, chunk_summaries: (progressState!.completed_fragments.filter(item => item.document_id === document.document_id).map(item => item.summary)) })), requested_source_fragments: requested })}`;
+      context = staged
+        ? `Повторный анализ полного комплекта после запроса оригинальных фрагментов. Сводки ниже — только навигация. requested_source_fragments содержат точные оригинальные значения, пути и идентификаторы. Пересмотри связи с их учетом и при необходимости запроси дополнительные фрагменты.\n${JSON.stringify({ documents: documents.map(document => ({ document_id: document.document_id, document_type: document.document_type, chunk_summaries: (progressState!.completed_fragments.filter(item => item.document_id === document.document_id).map(item => item.summary)) })), requested_source_fragments: requested })}`
+        : `Повторно проверь полный исходный комплект с учетом запрошенных тобой оригинальных фрагментов. Документы ниже переданы целиком, а фрагменты повторены отдельно для точного чтения. Не запрашивай повторно переданные фрагменты; пересмотри вывод и верни итоговый JSON.\n${JSON.stringify({ documents, requested_source_fragments: requested })}`;
       if (approximateTokens(systemPrompt + context) > maxInputTokens) throw Object.assign(new Error("Запрошенные моделью оригиналы не помещаются вместе в бюджет контекста. Данные не обрезаны и предложения не сохранены."), { status: 413 });
       if (options.maxModelCallsPerInvocation && calls - callsAtInvocationStart >= options.maxModelCallsPerInvocation) return partialResult("reviewing_requested_source");
     }

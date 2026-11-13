@@ -71,6 +71,28 @@ test("staged Gemma can request an exact original fragment and reconsider the who
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("full-set Gemma can request an original fragment and resume from its checkpoint", async () => {
+  const docs = fixtureDocs.filter(doc => ["contract-2026-0315", "addendum-2026-04"].includes(doc.document_id));
+  const requestedId = "contract-2026-0315", requestedPath = "fields.contract_number.value", originalFetch = globalThis.fetch;
+  let modelCalls = 0, saved: any, resumedContext: any;
+  globalThis.fetch = async (_input, init) => {
+    modelCalls++;
+    const body: any = JSON.parse(String(init?.body)), user = body.messages[1].content;
+    if (modelCalls === 1) return new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [], unlinked_document_ids: docs.map(doc => doc.document_id), analysis_summary: "Checking the source field.", context_requests: [{ document_id: requestedId, chunk_index: 0, reason: "Re-read the original contract number", paths: [requestedPath] }] }) } }] }), { status: 200 });
+    resumedContext = JSON.parse(user.slice(user.indexOf("\n") + 1));
+    return new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [], unlinked_document_ids: docs.map(doc => doc.document_id), analysis_summary: "Full source rechecked.", context_requests: [] }) } }] }), { status: 200 });
+  };
+  try {
+    const options = { apiKey: "test-only", timeoutMs: 1000, maxCalls: 4, maxInputTokens: 999999, systemPrompt, maxModelCallsPerInvocation: 1 };
+    const partial = await analyzeDocumentSet(docs, { ...options, onProgress: async state => { saved = state; } });
+    assert.equal(partial.complete, false); assert.equal(saved.calls, 1); assert.equal(saved.requested_source_fragments.length, 1);
+    const result = await analyzeDocumentSet(docs, { ...options, resumeProgress: saved });
+    assert.equal(result.complete, true); assert.equal(result.calls, 2); assert.equal(modelCalls, 2);
+    assert.equal(resumedContext.documents.length, docs.length);
+    assert.ok(resumedContext.requested_source_fragments[0].fragment.path_values.some((item: any) => item.path === requestedPath));
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("model choice is pinned and missing credentials fail without fallback", async () => {
   await assert.rejects(() => analyzeDocumentSet([], { apiKey: "test-only", timeoutMs: 10, maxCalls: 1, model: "other/model" }), /Разрешена только модель/);
   await assert.rejects(() => linkDocuments(fixtureDocs), /POLZA_API_KEY/);
