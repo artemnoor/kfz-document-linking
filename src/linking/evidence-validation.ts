@@ -1,8 +1,8 @@
 import type { Extraction } from "../contracts/input";
 import type { Evidence } from "./types";
 
-export type EvidenceIssueCode = "invalid_document_reference" | "invalid_link_metadata" | "evidence_source_direction_mismatch" | "unsafe_or_invalid_json_path" | "json_path_not_found" | "raw_value_mismatch" | "provenance_missing" | "provenance_document_mismatch" | "source_unavailable" | "source_text_missing" | "source_text_value_mismatch" | "row_id_not_found" | "row_id_not_cited_by_path" | "row_provenance_mismatch";
-export type InvalidRelationshipDiagnostic = { proposal_index: number; relationship_type?: string; source_document_id?: string; target_document_id?: string; reason_codes: EvidenceIssueCode[]; evidence_issues: { evidence_index: number; reason_codes: EvidenceIssueCode[]; source_path?: string; target_path?: string }[]; proposal: unknown };
+export type EvidenceIssueCode = "invalid_document_reference" | "invalid_link_metadata" | "evidence_source_direction_mismatch" | "unsafe_or_invalid_json_path" | "json_path_not_found" | "raw_value_mismatch" | "evidence_reference_not_found" | "evidence_reference_document_mismatch" | "provenance_missing" | "provenance_document_mismatch" | "source_unavailable" | "source_text_missing" | "source_text_value_mismatch" | "row_id_not_found" | "row_id_not_cited_by_path" | "row_provenance_mismatch";
+export type InvalidRelationshipDiagnostic = { proposal_index: number; relationship_type?: string; source_document_id?: string; target_document_id?: string; reason_codes: EvidenceIssueCode[]; evidence_issues: { evidence_index: number; reason_codes: EvidenceIssueCode[]; source_path?: string; target_path?: string; source_reference_id?: string; target_reference_id?: string }[]; proposal: unknown; resolution?: "corrected" | "withdrawn" | "unresolved" | "review_required"; corrected_proposal?: unknown; current_proposal?: unknown; correction_attempts?: number };
 export type EvidenceValidation = { valid: boolean; evidence?: Evidence["source"]; reasons: EvidenceIssueCode[]; warnings: EvidenceIssueCode[] };
 type PathSegment = string | number;
 
@@ -147,6 +147,8 @@ export function explainEvidenceIssue(code: EvidenceIssueCode): string {
     unsafe_or_invalid_json_path: "JSON-путь повреждён или содержит небезопасные свойства",
     json_path_not_found: "JSON-путь отсутствует в исходном документе",
     raw_value_mismatch: "raw_value не совпадает со значением по указанному JSON-пути",
+    evidence_reference_not_found: "reference_id отсутствует в реестре исходных доказательств",
+    evidence_reference_document_mismatch: "reference_id относится к другому документу, чем указанная сторона связи",
     provenance_missing: "для значения отсутствует provenance",
     provenance_document_mismatch: "provenance указывает на другой документ",
     source_unavailable: "исходный фрагмент помечен как недоступный",

@@ -263,6 +263,12 @@
                 },
                 "target_path": {
                   "type": "string"
+                },
+                "source_reference_id": {
+                  "type": "string"
+                },
+                "target_reference_id": {
+                  "type": "string"
                 }
               },
               "required": [
@@ -273,7 +279,23 @@
               "additionalProperties": false
             }
           },
-          "proposal": {}
+          "proposal": {},
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "corrected",
+              "withdrawn",
+              "unresolved",
+              "review_required"
+            ]
+          },
+          "corrected_proposal": {},
+          "current_proposal": {},
+          "correction_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
         },
         "required": [
           "proposal_index",

@@ -25,5 +25,5 @@ export type LinkingResult = {
     duration_ms: number;
   };
 };
-export type MatcherOptions = { llm?: { enabled: boolean; apiKey?: string; maxCalls?: number; timeoutMs?: number; maxRunMs?: number; model?: string; maxInputTokens?: number; systemPrompt?: string; resumeProgress?: AnalysisProgressState; onProgress?: (state: AnalysisProgressState) => Promise<void> } };
+export type MatcherOptions = { llm?: { enabled: boolean; apiKey?: string; maxCalls?: number; maxEvidenceCorrectionAttempts?: number; timeoutMs?: number; maxRunMs?: number; model?: string; maxInputTokens?: number; systemPrompt?: string; resumeProgress?: AnalysisProgressState; onProgress?: (state: AnalysisProgressState) => Promise<void> } };
 export type IndexedDocument = { extraction: Extraction; values: Record<string, any>; rows: { row: any; path: string; role: string; aliases: string[] }[] };

@@ -10,10 +10,12 @@
     "reviewer_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
     "scenarios": {
       "type": "array", "items": {
-        "type": "object", "required": ["id", "predictions_file", "gold_links"],
+        "type": "object", "required": ["id", "gold_links"],
+        "anyOf": [{ "required": ["predictions_file"] }, { "required": ["predictions_files"] }],
         "properties": {
           "id": { "type": "string" },
           "predictions_file": { "type": "string" },
+          "predictions_files": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
           "gold_links": { "type": "array", "items": {
             "type": "object", "required": ["relationship_type", "source_document_id", "target_document_id", "evidence"],
             "properties": {
