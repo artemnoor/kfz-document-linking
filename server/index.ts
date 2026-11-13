@@ -6,7 +6,7 @@ import { runMigrations } from "./migrate";
 import { createAnalysisQueue } from "./queue";
 import { PostgresStorage } from "./storage";
 
-const config = readConfig(), pool = postgres(config.databaseUrl, { max: Number(process.env.PG_POOL_SIZE ?? 10) });
+const config = readConfig(), pool = postgres(config.databaseUrl, { max: config.pgPoolSize });
 const storage = new PostgresStorage(pool), queue = createAnalysisQueue(config.redisUrl);
 await runMigrations(pool);
 const app = createApp({ storage, queue, config });

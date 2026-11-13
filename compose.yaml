@@ -1,11 +1,20 @@
 services:
+  config-check:
+    build: .
+    restart: "no"
+    command: ["node", "build/server/config-check.mjs"]
+    environment:
+      NODE_ENV: production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a generated POSTGRES_PASSWORD in .env}
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:?Set a generated API_BEARER_TOKEN in .env}
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-document_linking}
       POSTGRES_USER: ${POSTGRES_USER:-document_linking}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-document-linking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a generated POSTGRES_PASSWORD in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -15,6 +24,9 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    depends_on:
+      config-check:
+        condition: service_completed_successfully
 
   redis:
     image: redis:7-alpine
@@ -35,7 +47,7 @@ services:
     restart: "no"
     command: ["node", "build/server/migrate.mjs"]
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-document_linking}:${POSTGRES_PASSWORD:-local-document-linking}@postgres:5432/${POSTGRES_DB:-document_linking}
+      DATABASE_URL: postgres://${POSTGRES_USER:-document_linking}:${POSTGRES_PASSWORD:?Set a generated POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-document_linking}
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,15 +60,19 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOST: 0.0.0.0
-      DATABASE_URL: postgres://${POSTGRES_USER:-document_linking}:${POSTGRES_PASSWORD:-local-document-linking}@postgres:5432/${POSTGRES_DB:-document_linking}
+      DATABASE_URL: postgres://${POSTGRES_USER:-document_linking}:${POSTGRES_PASSWORD:?Set a generated POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-document_linking}
       REDIS_URL: redis://redis:6379
-      API_BEARER_TOKEN: ${API_BEARER_TOKEN:-local-development-token-change-me}
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:?Set a generated API_BEARER_TOKEN in .env}
       POLZA_API_KEY: ${POLZA_API_KEY:-${POLZA_AI_API_KEY:-}}
       LLM_ENABLED: ${LLM_ENABLED:-true}
       LLM_MAX_CALLS_PER_RUN: ${LLM_MAX_CALLS_PER_RUN:-52}
       LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-90000}
       LLM_MAX_INPUT_TOKENS: ${LLM_MAX_INPUT_TOKENS:-180000}
       LLM_MAX_RUN_MS: ${LLM_MAX_RUN_MS:-900000}
+      MAX_REQUEST_SIZE_MB: ${MAX_REQUEST_SIZE_MB:-32}
+      MAX_DOCUMENT_SIZE_MB: ${MAX_DOCUMENT_SIZE_MB:-16}
+      MAX_DOCUMENT_SET_SIZE_MB: ${MAX_DOCUMENT_SET_SIZE_MB:-30}
+      MAX_DOCUMENTS: ${MAX_DOCUMENTS:-100}
     ports:
       - "${PORT:-3000}:3000"
     depends_on:

@@ -1,92 +1,91 @@
 # KFZ Document Linking
 
-Этап 4 анализирует результаты Structured Extraction и строит граф отношений между документами и их строками. Смысловые решения принимает только `google/gemma-4-26b-a4b-it` через Polza AI. TypeScript-код отвечает за передачу контекста, техническую проверку доказательств, фоновые задания и сохранение результата.
+Document Linking принимает JSON-контракты Structured Extraction, передаёт комплект Gemma 4 26B A4B через Polza AI, технически проверяет доказательства и сохраняет результат. Инфраструктура: Node.js 22, Hono, PostgreSQL, Redis, BullMQ и React.
 
-## Запуск на Windows 11 или VPS
+## Docker Compose: Windows 11 и VPS
 
-Требуются Docker Engine/Desktop с Compose v2. Для вызова модели задайте `POLZA_API_KEY` в `.env`; само приложение, PostgreSQL и Redis работают локально и не требуют облачного аккаунта.
+Установите Docker Desktop с Compose v2 на Windows 11 либо Docker Engine и Compose v2 на VPS. Скопируйте шаблон и заполните секреты:
 
 ```powershell
 Copy-Item .env.example .env
-# Измените POSTGRES_PASSWORD и API_BEARER_TOKEN; укажите POLZA_API_KEY для LLM
+# Сгенерируйте два разных секрета длиной не менее 32 символов:
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[Convert]::ToBase64String($bytes) -replace '[+/=]', ''
+# Повторите генерацию и укажите значения в POSTGRES_PASSWORD и API_BEARER_TOKEN в .env
+```
+
+В `POSTGRES_PASSWORD` и `API_BEARER_TOKEN` нельзя оставлять пустые, короткие, одинаковые, тестовые или примерные значения. Production guard проверяет их до старта PostgreSQL, API и Worker. Ключ `POLZA_API_KEY` нужен для создания заданий анализа; без него приложение и интерфейс запускаются, а API явно откажет в анализе.
+
+```powershell
 docker compose up --build
 ```
 
-Откройте http://localhost:3000. Сервисы `postgres` и `redis` имеют health checks, миграция запускается перед API и worker. Данные PostgreSQL и очередь Redis сохраняются в Compose volumes при перезапуске.
+Откройте http://localhost:3000. По умолчанию PostgreSQL доступен только на `127.0.0.1:55432`, Redis — только на `127.0.0.1:56379`; интерфейс/API — на порту `3000`. Поменять внешние порты можно через `PG_PORT`, `REDIS_PORT` и `PORT`. PostgreSQL и Redis используют постоянные volumes. Для сохранения данных останавливайте сервисы командой `docker compose down`, не добавляя `-v`.
 
-Без Polza key сервис и интерфейс запускаются, но запрос анализа вернёт явную ошибку конфигурации. Модель не заменяется другой моделью или локальной логикой.
+Для VPS задайте секреты в `.env`, настройте внешний TLS reverse proxy и откройте наружу только HTTP(S) порт приложения. PostgreSQL и Redis в Compose привязаны к loopback хоста.
 
-Для остановки используйте `docker compose down`; для сохранения данных не удаляйте volumes через `docker compose down -v`.
+## Локальная разработка
 
-## Разработка без Docker для приложения
-
-Docker может запускать только PostgreSQL и Redis. Для Node.js требуется версия 22 или новее.
+Установите Node.js 22+ и npm. Заполните `.env` секретами так же, как для Compose. Для запуска Node-процессов вне Docker задайте `DATABASE_URL` на локальный порт PostgreSQL, например `postgres://document_linking:<POSTGRES_PASSWORD>@127.0.0.1:55432/document_linking`; `REDIS_URL` оставьте `redis://127.0.0.1:56379`.
 
 ```powershell
-Copy-Item .env.example .env
 npm ci
 docker compose up -d postgres redis
 npm run migrate
 npm run dev:api
 ```
 
-В отдельных терминалах запустите `npm run dev:worker` и `npm run dev` (Vite). Откройте http://127.0.0.1:5173. Host-конфигурация из `.env` должна указывать на `localhost:5432` и `localhost:6379`; Compose передаёт контейнерам внутренние DNS адреса автоматически.
+В отдельных терминалах запустите `npm run dev:worker` и `npm run dev`. Откройте Vite на http://127.0.0.1:5173. API и Worker используют Node-переменные из `.env`; интерфейс передаёт введённый API-токен только в заголовках запросов и не сохраняет его. Идентификатор активного задания хранится в `sessionStorage`, чтобы восстановить прогресс после перезагрузки вкладки.
 
-## Устройство
+## Переменные окружения
 
-- `server/app.ts` — Hono API и раздача собранного frontend.
-- `src/linking/` — Document Linking Engine, клиент Polza/Gemma и Evidence Validator.
-- `server/storage.ts` — PostgreSQL transactions, прогресс, результаты и блокировка заданий.
-- `server/queue.ts`, `server/worker.ts` — BullMQ/Redis и возобновляемая обработка.
-- `migrations/postgres/` — версионированные SQL-миграции PostgreSQL.
-- `src/ui/` — React интерфейс.
+Полный список и безопасные пустые значения находятся в `.env.example`.
 
-BullMQ восстанавливает stalled jobs после завершения процесса. PostgreSQL атомарно захватывает задание с lease, checkpoints содержат точное состояние многоэтапного анализа и usage. Задание продолжает обработку после временной ошибки с backoff; повторы используют ключи идемпотентности и сохранённый прогресс.
+- `POSTGRES_PASSWORD`, `API_BEARER_TOKEN` — обязательные разные production-секреты длиной от 32 символов.
+- `POLZA_API_KEY` — опциональный ключ Polza AI; также поддерживается `POLZA_AI_API_KEY`.
+- `POSTGRES_DB`, `POSTGRES_USER`, `DATABASE_URL`, `REDIS_URL` — базы и подключения. В Compose URL БД формируется из `POSTGRES_*`; локальным Node-процессам задайте host URL вручную.
+- `PORT`, `PG_PORT`, `REDIS_PORT` — порт API и опубликованные host-порты PostgreSQL/Redis.
+- `MAX_REQUEST_SIZE_MB` — общий лимит тела HTTP-запроса, по умолчанию 32 МиБ.
+- `MAX_DOCUMENT_SIZE_MB` — лимит одного документа, по умолчанию 16 МиБ.
+- `MAX_DOCUMENT_SET_SIZE_MB` — суммарный лимит документов после разбора JSON, по умолчанию 30 МиБ.
+- `MAX_DOCUMENTS` — число документов в одном комплекте, по умолчанию 100.
+- `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_CALLS_PER_RUN`, `LLM_TIMEOUT_MS`, `LLM_MAX_RUN_MS` — ограничения обработки Gemma.
 
-В контекст, который помещается, передаётся весь набор Structured Extraction. Для больших наборов Gemma изучает каждый фрагмент с исходными путями, затем может запросить исходный фрагмент по document ID и chunk index и пересмотреть связи. Сводки используются только для навигации; данные не обрезаются молча.
-
-## Настройки
-
-Основные параметры задаются в `.env`:
-
-- `API_BEARER_TOKEN` — доступ к API.
-- `POLZA_API_KEY` — ключ Polza AI. Допускается Windows environment variable `POLZA_API_KEY` или прежнее имя `POLZA_AI_API_KEY`.
-- `DATABASE_URL`, `REDIS_URL` — подключения PostgreSQL и Redis.
-- `LLM_MAX_INPUT_TOKENS` (по умолчанию 180000), `LLM_MAX_CALLS_PER_RUN` (до 52), `LLM_TIMEOUT_MS`, `LLM_MAX_RUN_MS` — лимиты обработки.
-- `PORT`, `HOST` — адрес API (по умолчанию 3000 и `0.0.0.0`).
-
-Модель закреплена на `google/gemma-4-26b-a4b-it`, endpoint — `https://polza.ai/api/v1/chat/completions`. Fallback провайдеров отключён. Стоимость, токены, фактическая модель, provider, длительность и число запросов сохраняются, если Polza сообщает usage.
+Превышение размера запроса, документа, комплекта или числа документов возвращает HTTP 413 с причиной. Лимиты не отключаются; их значения можно согласованно настроить в указанном порядке: размер документа ≤ комплекта ≤ HTTP-запроса.
 
 ## API
 
 Все endpoints, кроме `/api/health`, требуют `Authorization: Bearer <API_BEARER_TOKEN>`.
 
-- `POST /api/linking-jobs` — создать задание; ответ `202` содержит `job_id`. Поддерживает `Idempotency-Key`.
-- `GET /api/linking-jobs/{id}` — статус, фаза, fragments, calls, token usage, стоимость или полный результат.
-- `POST /api/linking-jobs/{id}/resume` — повторно поставить завершившееся ошибкой задание в очередь с сохранёнными checkpoints.
-- `POST /api/linking-runs` — синхронный совместимый endpoint анализа.
-- `GET /api/linking-runs/{id}` — получить сохранённый результат.
-- `PATCH /api/linking-runs/{runId}/links/{linkId}` — подтвердить или отклонить связь специалистом.
-- `GET /api/demo` — демонстрационные входы.
-- `GET /api/health` — readiness проверки PostgreSQL и Redis.
+- `POST /api/linking-jobs` — создать асинхронное задание с `Idempotency-Key`.
+- `GET /api/linking-jobs/{id}` — статус, прогресс, токены, стоимость и результат.
+- `POST /api/linking-jobs/{id}/resume` — продолжить завершившееся ошибкой задание с сохранённым checkpoint.
+- `POST /api/linking-runs` и `GET /api/linking-runs/{id}` — синхронный совместимый API и чтение результата.
+- `PATCH /api/linking-runs/{runId}/links/{linkId}` — решение специалиста по связи.
+- `GET /api/demo` и `GET /api/health` — примеры и состояние сервиса.
 
-Контракты Structured Extraction 1.2.0 и Document Linking 1.2.0 сохранены. Дополнительные поля будущих minor-версий Structured Extraction принимаются и сохраняются; неизвестная major-версия диагностируется. Результат включает документные/строковые ID, исходные пути, provenance, объяснения, статусы, уверенность, диагностику, историю использования модели и пригоден для Reconciliation.
+Доступные контракты Structured Extraction 1.2.0 и Document Linking 1.2.0 не менялись. Поля будущих minor-версий Structured Extraction принимаются; несовместимая major-версия диагностируется. Отношения остаются открытыми строками. Программная часть проверяет ссылки на исходные данные, не подменяя семантические решения модели.
 
-## Проверки
+## Повторы и фоновые задания
+
+401/403/402 от Polza и ошибки 4xx не повторяются. Для 429 используется `Retry-After` с ограничением времени ожидания. Сетевые ошибки, таймауты и 5xx используют ограниченный exponential backoff BullMQ. Число попыток ограничено. Прогресс сохраняется в PostgreSQL, а при старте Worker незавершённые задания сверяются с очередью. PostgreSQL lease исключает параллельную обработку одного задания.
+
+## Проверки и CI
 
 ```powershell
+npm ci
 npm test
 npm run test:contract
 npm run typecheck
 npm run build
-docker compose up --build
+$env:DATABASE_URL='postgres://document_linking:<password>@127.0.0.1:55432/document_linking'
+$env:REDIS_URL='redis://127.0.0.1:56379'
 npm run test:integration
+docker compose up --build
 ```
 
-Инфраструктурные integration tests используют `DATABASE_URL` и `REDIS_URL`; они проверяют PostgreSQL persistence, эксклюзивное получение задания и повтор BullMQ после временной ошибки. Их можно запустить на хосте, пока Compose поднял локальные сервисы.
+GitHub Actions на каждом push и pull request запускает unit, contract, typecheck, production build, PostgreSQL/Redis integration tests и сборку Docker image. CI не использует ключ Polza и не делает платных запросов к модели.
 
-`npm run test:polza` выполняет один небольшой настоящий запрос через Polza, если `POLZA_API_KEY` доступен в Windows environment или `.env`. Не запускайте `npm run test:polza:full` без необходимости: это отдельный многоэтапный анализ с большим числом платных запросов.
-
-## Evaluation
-
-Независимая разметка формата описана в `evaluation/annotations.schema.json`, а список тестовых сценариев — в `evaluation/scenarios.json`. Независимой gold-разметки в репозитории нет, поэтому precision, recall, F1, направление, сопоставление строк и точность provenance не измерены. После экспертной разметки отчёт строится командой `npm run eval:links -- evaluation/annotations.json`.
+`npm run test:polza` — отдельный настоящий smoke-запрос, если ключ доступен; `npm run test:polza:full` запускает большой платный прогон. Независимой эталонной разметки нет, поэтому precision, recall и F1 не измерены.

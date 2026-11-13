@@ -15,27 +15,43 @@ import type { PostgresStorage } from "./storage";
 export type AppDependencies = {
   storage: PostgresStorage;
   queue: AnalysisQueue;
-  config: { apiToken?: string; polzaApiKey?: string; llmEnabled: boolean; maxCalls: number; timeoutMs: number; maxInputTokens: number; maxRunMs: number; systemPrompt?: string };
+  config: { apiToken?: string; polzaApiKey?: string; llmEnabled: boolean; maxCalls: number; timeoutMs: number; maxInputTokens: number; maxRunMs: number; systemPrompt?: string; maxRequestBytes?: number; maxDocumentBytes?: number; maxDocumentSetBytes?: number; maxDocuments?: number };
 };
-const MAX_BODY_BYTES = 3 * 1024 * 1024;
+const MIB = 1024 * 1024;
+const DEFAULT_LIMITS = { maxRequestBytes: 32 * MIB, maxDocumentBytes: 16 * MIB, maxDocumentSetBytes: 30 * MIB, maxDocuments: 100 };
 function validToken(provided: string, expected?: string): boolean {
   if (!expected) return false;
   const a = Buffer.from(provided), b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
 }
-async function jsonBody(request: Request): Promise<{ body?: any; error?: string }> {
-  const reader = request.body?.getReader(); if (!reader) return { error: "Пустое тело запроса" };
+async function jsonBody(request: Request, maxBytes: number): Promise<{ body?: any; error?: string; status?: number }> {
+  const contentLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) return { error: `Размер HTTP-запроса превышает лимит ${Math.ceil(maxBytes / MIB)} МиБ`, status: 413 };
+  const reader = request.body?.getReader(); if (!reader) return { error: "Пустое тело запроса", status: 400 };
   const chunks: Uint8Array[] = []; let total = 0;
   while (true) {
     const { done, value } = await reader.read(); if (done) break;
-    total += value.byteLength; if (total > MAX_BODY_BYTES) { await reader.cancel(); return { error: "Размер запроса превышает 3 МиБ" }; }
+    total += value.byteLength; if (total > maxBytes) { await reader.cancel(); return { error: `Размер HTTP-запроса превышает лимит ${Math.ceil(maxBytes / MIB)} МиБ`, status: 413 }; }
     chunks.push(value);
   }
   const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-  try { return { body: JSON.parse(new TextDecoder().decode(bytes)) }; } catch { return { error: "Некорректный JSON тела запроса" }; }
+  try { return { body: JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) }; } catch { return { error: "Некорректный JSON тела запроса", status: 400 }; }
 }
 function documentsFrom(body: any): unknown { return body?.documents ?? body; }
 function clientIp(request: Request): string { return request.headers.get("x-real-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"; }
+function documentSizeError(documents: unknown[], config: AppDependencies["config"]): string | undefined {
+  const limits = { ...DEFAULT_LIMITS, ...config };
+  let total = 0;
+  for (let index = 0; index < documents.length; index++) {
+    let size: number;
+    try { size = Buffer.byteLength(JSON.stringify(documents[index]), "utf8"); }
+    catch { return `Документ ${index + 1} нельзя представить как JSON`; }
+    if (size > limits.maxDocumentBytes) return `Документ ${index + 1} превышает лимит ${Math.ceil(limits.maxDocumentBytes / MIB)} МиБ`;
+    total += size;
+  }
+  if (total > limits.maxDocumentSetBytes) return `Общий размер комплекта превышает лимит ${Math.ceil(limits.maxDocumentSetBytes / MIB)} МиБ`;
+  return undefined;
+}
 
 export function createApp(deps: AppDependencies) {
   const app = new Hono();
@@ -52,7 +68,10 @@ export function createApp(deps: AppDependencies) {
   };
   app.onError((error, c) => {
     const status = Number.isInteger((error as any).status) ? (error as any).status : 500;
-    return c.json({ error: String(error.message ?? "Внутренняя ошибка"), ...(status === 422 ? { diagnostics: (error as any).diagnostics ?? [] } : []) }, status as any);
+    const candidate = status < 500 ? String((error as any).publicMessage ?? error.message ?? "Некорректный запрос") : String((error as any).publicMessage ?? "Внутренняя ошибка сервера");
+    const secrets = [deps.config.apiToken, deps.config.polzaApiKey].filter((value): value is string => Boolean(value));
+    const message = secrets.reduce((value, secret) => value.split(secret).join("[redacted]"), candidate);
+    return c.json({ error: message, ...(status === 422 ? { diagnostics: (error as any).diagnostics ?? [] } : []) }, status as any);
   });
 
   app.get("/api/health", async c => {
@@ -68,9 +87,11 @@ export function createApp(deps: AppDependencies) {
 
   app.use("/api/linking-runs", auth); app.use("/api/linking-runs/*", auth);
   app.post("/api/linking-runs", limit("run"), async c => {
-    const parsed = await jsonBody(c.req.raw); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+    const parsed = await jsonBody(c.req.raw, deps.config.maxRequestBytes ?? DEFAULT_LIMITS.maxRequestBytes); if (parsed.error) return c.json({ error: parsed.error }, parsed.status as any);
     const body = parsed.body, documents = documentsFrom(body);
-    if (!Array.isArray(documents) || documents.length > 50) return c.json({ error: "Ожидается массив не более чем из 50 документов" }, 422);
+    if (!Array.isArray(documents)) return c.json({ error: "Ожидается массив документов" }, 422);
+    if (documents.length > (deps.config.maxDocuments ?? DEFAULT_LIMITS.maxDocuments)) return c.json({ error: `Количество документов превышает лимит ${deps.config.maxDocuments ?? DEFAULT_LIMITS.maxDocuments}` }, 413);
+    const sizeError = documentSizeError(documents, deps.config); if (sizeError) return c.json({ error: sizeError }, 413);
     const payloadHash = await sha256(JSON.stringify(body)), rawKey = c.req.header("Idempotency-Key");
     if (rawKey && (rawKey.length > 128 || !/^[\w.:-]+$/.test(rawKey))) return c.json({ error: "Некорректный Idempotency-Key" }, 400);
     const key = rawKey ? await sha256(rawKey) : payloadHash, existing = await deps.storage.findRunByIdempotency(key);
@@ -85,7 +106,7 @@ export function createApp(deps: AppDependencies) {
     const result = await deps.storage.readRun(c.req.param("id")); return result ? c.json(result) : c.json({ error: "Запуск не найден или повреждён" }, 404);
   });
   app.patch("/api/linking-runs/:runId/links/:linkId", limit("read"), async c => {
-    const parsed = await jsonBody(c.req.raw); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+    const parsed = await jsonBody(c.req.raw, deps.config.maxRequestBytes ?? DEFAULT_LIMITS.maxRequestBytes); if (parsed.error) return c.json({ error: parsed.error }, parsed.status as any);
     const body = parsed.body; if (!body || !["confirmed", "rejected"].includes(body.status)) return c.json({ error: "status должен быть confirmed или rejected" }, 400);
     const previous = await deps.storage.readRun(c.req.param("runId")); if (!previous) return c.json({ error: "Запуск не найден" }, 404);
     const result = structuredClone(previous) as LinkingResult, link = result.links.find(item => item.link_id === c.req.param("linkId")); if (!link) return c.json({ error: "Связь не найдена" }, 404);
@@ -99,9 +120,13 @@ export function createApp(deps: AppDependencies) {
 
   app.use("/api/linking-jobs", auth); app.use("/api/linking-jobs/*", auth);
   app.post("/api/linking-jobs", limit("run"), async c => {
-    const parsed = await jsonBody(c.req.raw); if (parsed.error) return c.json({ error: parsed.error }, parsed.error.includes("Размер") ? 413 : 400);
+    const parsed = await jsonBody(c.req.raw, deps.config.maxRequestBytes ?? DEFAULT_LIMITS.maxRequestBytes); if (parsed.error) return c.json({ error: parsed.error }, parsed.status as any);
     const body = parsed.body, input = documentsFrom(body);
-    if (!Array.isArray(input) || input.length > 50) return c.json({ error: "Ожидается массив не более чем из 50 документов" }, 422);
+    if (!Array.isArray(input)) return c.json({ error: "Ожидается массив документов" }, 422);
+    if (input.length > (deps.config.maxDocuments ?? DEFAULT_LIMITS.maxDocuments)) return c.json({ error: `Количество документов превышает лимит ${deps.config.maxDocuments ?? DEFAULT_LIMITS.maxDocuments}` }, 413);
+    const sizeError = documentSizeError(input, deps.config); if (sizeError) return c.json({ error: sizeError }, 413);
+    if (!deps.config.llmEnabled) return c.json({ error: "LLM-анализ отключён; включите Gemma через Polza AI" }, 503);
+    if (!deps.config.polzaApiKey) return c.json({ error: "Задайте POLZA_API_KEY для создания задания анализа" }, 503);
     const checked = validateInput(input); if (!checked.success) return c.json({ error: "Входные данные не соответствуют Structured Extraction 1.2.0", diagnostics: checked.diagnostics }, 422);
     const payload = JSON.stringify({ documents: checked.documents }), payloadHash = await sha256(payload), rawKey = c.req.header("Idempotency-Key");
     if (rawKey && (rawKey.length > 128 || !/^[\w.:-]+$/.test(rawKey))) return c.json({ error: "Некорректный Idempotency-Key" }, 400);
@@ -117,6 +142,8 @@ export function createApp(deps: AppDependencies) {
     return c.json({ job_id: job.id, status: job.status, phase: progress.phase ?? (job.status === "queued" ? "queued" : job.status), progress: { completed_fragments: progress.completed_fragments?.length ?? 0, total_fragments: progress.total_fragments ?? null, model_calls: progress.calls ?? 0, input_tokens: progress.input_tokens ?? 0, output_tokens: progress.output_tokens ?? 0, cost_amount: progress.has_cost ? progress.cost_amount : null, cost_currency: progress.cost_currency ?? null, context_rounds: progress.context_rounds ?? 0 }, model: GEMMA_MODEL, provider: "Polza AI", attempts: job.attempts, last_error: job.last_error, run_id: job.run_id, ...(job.status === "completed" ? { result: job.result_json } : {}), created_at: job.created_at, updated_at: job.updated_at });
   });
   app.post("/api/linking-jobs/:id/resume", limit("run"), async c => {
+    if (!deps.config.llmEnabled) return c.json({ error: "LLM-анализ отключён; включите Gemma через Polza AI" }, 503);
+    if (!deps.config.polzaApiKey) return c.json({ error: "Задайте POLZA_API_KEY для продолжения задания" }, 503);
     const job = await deps.storage.readJob(c.req.param("id")); if (!job) return c.json({ error: "Задание не найдено" }, 404);
     if (["completed", "queued", "running", "retrying"].includes(job.status)) return c.json({ job_id: job.id, status: job.status }, 200);
     await deps.storage.resetFailedJob(job.id); await deps.queue.enqueue(job.id, true); return c.json({ job_id: job.id, status: "queued" }, 202);

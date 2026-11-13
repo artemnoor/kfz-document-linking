@@ -10,7 +10,7 @@
     "start": "node build/server/index.mjs",
     "start:worker": "node build/server/worker-main.mjs",
     "migrate": "tsx server/migrate.ts",
-    "build": "npm run typecheck && vite build && esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/index.mjs && esbuild server/worker-main.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/worker-main.mjs && esbuild server/migrate.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/migrate.mjs",
+    "build": "npm run typecheck && vite build && esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/index.mjs && esbuild server/worker-main.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/worker-main.mjs && esbuild server/migrate.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/migrate.mjs && esbuild server/config-check.ts --bundle --platform=node --format=esm --packages=external --outfile=build/server/config-check.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx --test tests/*.integration.test.ts",

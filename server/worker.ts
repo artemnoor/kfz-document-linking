@@ -1,30 +1,45 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { Worker, type Job } from "bullmq";
+import { UnrecoverableError, Worker, type Job } from "bullmq";
 import IORedis from "ioredis";
 import { validateInput } from "../src/contracts/input";
 import { linkingOutputSchema } from "../src/contracts/output";
 import { buildLinkingResult } from "../src/linking/link-resolver";
 import { analyzeDocumentSet, GEMMA_MODEL } from "../src/linking/llm-matcher";
+import { PolzaRequestError } from "../src/linking/polza-client";
 import type { AnalysisProgressState } from "../src/linking/types";
 import { ANALYSIS_QUEUE_NAME, type AnalysisQueue } from "./queue";
 import { PostgresStorage } from "./storage";
 
 const LEASE_MS = 30_000;
 const sleep = (ms: number) => new Promise(resolveSleep => setTimeout(resolveSleep, ms));
-function statusOf(error: any): number { return Number.isInteger(error?.status) ? error.status : 500; }
-function retryable(error: any): boolean { const status = statusOf(error); return status === 0 || status >= 500; }
+export function isRetryableAnalysisError(error: unknown): boolean {
+  if (error instanceof PolzaRequestError) return error.retryable;
+  const candidate = error as { status?: number; retryable?: boolean };
+  if (candidate?.retryable === false) return false;
+  if (candidate?.status === 401 || candidate?.status === 402 || candidate?.status === 403) return false;
+  if (candidate?.status === 429) return true;
+  if (Number.isInteger(candidate?.status) && candidate.status! >= 400 && candidate.status! < 500) return false;
+  return true;
+}
+
+export function analysisBackoff(attemptsMade: number, type?: string, error?: Error): number {
+  if (type !== "polza-exponential") return -1;
+  const exponential = Math.min(5 * 60_000, 3_000 * 2 ** Math.max(0, attemptsMade - 1));
+  const providerDelay = error instanceof PolzaRequestError ? error.retryAfterMs ?? 0 : 0;
+  return Math.min(15 * 60_000, Math.max(exponential, providerDelay));
+}
 
 export async function recoverPendingJobs(storage: PostgresStorage, queue: AnalysisQueue): Promise<number> {
   const ids = await storage.listRecoverableJobIds();
-  for (const id of ids) await queue.enqueue(id);
+  for (const id of ids) await queue.enqueue(id, true);
   return ids.length;
 }
 
 export async function processAnalysisJob(job: Job<{ job_id: string }>, deps: { storage: PostgresStorage; apiKey: string; maxCalls: number; maxInputTokens: number; timeoutMs: number; maxRunMs: number; systemPrompt?: string }) {
   const { storage } = deps, id = job.data.job_id;
   const jobRow = await storage.readJob(id);
-  if (!jobRow || jobRow.status === "completed") return { skipped: true };
+  if (!jobRow || jobRow.status === "completed" || jobRow.status === "failed") return { skipped: true };
   const claimed = await storage.claimJob(id, LEASE_MS);
   if (!claimed) {
     if (jobRow.status === "running" && (jobRow.lease_expires_at_ms ?? 0) > Date.now()) return { skipped: true, reason: "job_already_claimed" };
@@ -66,8 +81,9 @@ export async function processAnalysisJob(job: Job<{ job_id: string }>, deps: { s
       await sleep(0);
     }
   } catch (error: any) {
-    const shouldRetry = retryable(error) && job.attemptsMade + 1 < (job.opts.attempts ?? 5);
+    const mayRetry = isRetryableAnalysisError(error), shouldRetry = mayRetry && job.attemptsMade + 1 < (job.opts.attempts ?? 5);
     await storage.failJob(id, String(error?.message ?? "Ошибка фонового анализа"), shouldRetry);
+    if (!mayRetry) throw new UnrecoverableError(String(error?.message ?? "Ошибка фонового анализа"));
     throw error;
   } finally { if (heartbeat) clearInterval(heartbeat); }
 }
@@ -76,6 +92,7 @@ export function startAnalysisWorker(redisUrl: string, deps: Parameters<typeof pr
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
   const worker = new Worker<{ job_id: string }>(queueName, job => processAnalysisJob(job, deps), {
     connection, concurrency: 1, lockDuration: 60_000, maxStalledCount: 5, stalledInterval: 15_000,
+    settings: { backoffStrategy: analysisBackoff },
   });
   worker.on("failed", job => { if (job) console.error(`Analysis job failed (${job.id}); attempt ${job.attemptsMade}`); });
   worker.on("error", error => console.error("BullMQ worker error:", error.message));

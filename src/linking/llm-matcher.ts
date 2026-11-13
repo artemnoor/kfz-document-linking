@@ -35,12 +35,12 @@ function fragmentDocument(document: Extraction, tokenBudget: number): Record<str
 export type ModelRun = { complete: boolean; phase: "reading_documents" | "resolving_relationships" | "reviewing_requested_source" | "complete"; links: Link[]; unlinkedDocumentIds: string[]; invalidRelationshipDiagnostics: InvalidRelationshipDiagnostic[]; calls: number; errors: number; inputTokens?: number; outputTokens?: number; costAmount?: number | null; costCurrency?: string | null; durationMs: number; model: string; provider: string; analysisSummary: string; strategy: "full_set" | "document_fragments_then_full_set"; estimatedInputTokens: number };
 
 export async function analyzeDocumentSet(documents: Extraction[], options: { apiKey: string; timeoutMs: number; maxRunMs?: number; maxCalls: number; model?: string; maxInputTokens?: number; systemPrompt?: string; resumeProgress?: AnalysisProgressState; onProgress?: (state: AnalysisProgressState) => Promise<void>; maxModelCallsPerInvocation?: number }): Promise<ModelRun> {
-  if (!options.apiKey) throw Object.assign(new Error("POLZA_API_KEY не задан; LLM-анализ недоступен"), { status: 503 });
+  if (!options.apiKey) throw Object.assign(new Error("POLZA_API_KEY не задан; LLM-анализ недоступен"), { status: 503, retryable: false });
   const model = options.model ?? GEMMA_MODEL;
-  if (model !== GEMMA_MODEL || model !== POLZA_MODEL) throw Object.assign(new Error(`Разрешена только модель ${GEMMA_MODEL}`), { status: 500 });
-  if (!options.systemPrompt?.trim()) throw Object.assign(new Error("Не загружена системная инструкция prompts/document-linking-system.md"), { status: 503 });
+  if (model !== GEMMA_MODEL || model !== POLZA_MODEL) throw Object.assign(new Error(`Разрешена только модель ${GEMMA_MODEL}`), { status: 500, retryable: false });
+  if (!options.systemPrompt?.trim()) throw Object.assign(new Error("Не загружена системная инструкция prompts/document-linking-system.md"), { status: 503, retryable: false });
   const systemPrompt = options.systemPrompt;
-  if (options.maxCalls < 1) throw Object.assign(new Error("Лимит Polza вызовов должен быть не меньше 1"), { status: 503 });
+  if (options.maxCalls < 1) throw Object.assign(new Error("Лимит Polza вызовов должен быть не меньше 1"), { status: 503, retryable: false });
   const payload = JSON.stringify({ documents });
   const maxInputTokens = options.maxInputTokens ?? 180_000;
   const started = Date.now(), candidateProgress = options.resumeProgress;

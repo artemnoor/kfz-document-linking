@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import postgres from "postgres";
+import { Queue, Worker } from "bullmq";
+import IORedis from "ioredis";
 import { createAnalysisQueue } from "../server/queue";
 import { PostgresStorage } from "../server/storage";
 import { runMigrations } from "../server/migrate";
@@ -45,6 +47,36 @@ test("PostgreSQL persistence, exclusive claim and BullMQ retry/recovery", { skip
     globalThis.fetch = originalFetch;
     await worker.worker.close(); await worker.connection.quit(); await queue.close();
     await pool`DELETE FROM analysis_jobs WHERE id=${id} OR id=${lockId}`;
+    await pool.end({ timeout: 5 });
+  }
+});
+
+test("startup recovery requeues a database job whose completed BullMQ entry was left stale", { skip: !databaseUrl || !redisUrl ? "Set DATABASE_URL and REDIS_URL to run infrastructure integration" : false }, async () => {
+  const queueName = `document-linking-recovery-${randomUUID()}`;
+  const pool = postgres(databaseUrl!, { max: 5 }), storage = new PostgresStorage(pool), recoveryQueue = createAnalysisQueue(redisUrl!, queueName);
+  const queueConnection = new IORedis(redisUrl!, { maxRetriesPerRequest: null }), workerConnection = new IORedis(redisUrl!, { maxRetriesPerRequest: null });
+  const queue = new Queue(queueName, { connection: queueConnection });
+  const worker = new Worker(queueName, async () => ({ skipped: true }), { connection: workerConnection, concurrency: 1 });
+  const id = randomUUID();
+  try {
+    await runMigrations(pool);
+    await storage.createJob({ id, key: `recovery:${id}`, payloadHash: `recovery-hash:${id}`, payload: JSON.stringify({ documents: [] }) });
+    await storage.claimJob(id, -1_000);
+    await recoveryQueue.enqueue(id);
+    const deadline = Date.now() + 10_000;
+    let queued = await queue.getJob(id);
+    while ((!queued || await queued.getState() !== "completed") && Date.now() < deadline) { await new Promise(resolve => setTimeout(resolve, 100)); queued = await queue.getJob(id); }
+    assert.ok(queued); assert.equal(await queued.getState(), "completed");
+    await worker.pause(true);
+    assert.equal(await recoverPendingJobs(storage, recoveryQueue), 1);
+    queued = await queue.getJob(id);
+    assert.ok(queued);
+    const recoveredState = await queued.getState();
+    assert.ok(["waiting", "active"].includes(recoveredState), `recovery must replace an obsolete completed queue entry (got ${recoveredState})`);
+  } finally {
+    await worker.close(); await queue.close(); await recoveryQueue.close();
+    await queueConnection.quit(); await workerConnection.quit();
+    await pool`DELETE FROM analysis_jobs WHERE id=${id}`;
     await pool.end({ timeout: 5 });
   }
 });

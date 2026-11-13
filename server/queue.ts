@@ -8,9 +8,9 @@ export function createAnalysisQueue(redisUrl: string, queueName = ANALYSIS_QUEUE
   const queue = new Queue<{ job_id: string }>(queueName, { connection });
   return {
     async enqueue(jobId, resume = false) {
-      if (resume) { const existing = await queue.getJob(jobId); if (existing && (await existing.getState()) === "failed") await existing.remove(); }
+      if (resume) { const existing = await queue.getJob(jobId); if (existing && ["failed", "completed"].includes(await existing.getState())) await existing.remove(); }
       await queue.add("analyze-document-set", { job_id: jobId }, {
-        jobId, attempts: 5, backoff: { type: "exponential", delay: 3000 },
+        jobId, attempts: 5, backoff: { type: "polza-exponential", delay: 3000 },
         removeOnComplete: { age: 86_400, count: 1000 }, removeOnFail: { age: 604_800, count: 5000 },
       });
     },
