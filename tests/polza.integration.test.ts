@@ -5,8 +5,8 @@ import { linkDocuments } from "../src/linking/link-resolver";
 import { GEMMA_MODEL } from "../src/linking/llm-matcher";
 import { linkingOutputSchema } from "../src/contracts/output";
 
-const apiKey = process.env.POLZA_API_KEY;
-const systemPrompt = readFileSync("public/prompts/document-linking-system.md", "utf8");
+const apiKey = process.env.POLZA_API_KEY || process.env.POLZA_AI_API_KEY;
+const systemPrompt = readFileSync("prompts/document-linking-system.md", "utf8");
 test("live Polza smoke test calls Gemma 4 26B A4B and validates its output", { skip: !apiKey && "Set POLZA_API_KEY or POLZA_AI_API_KEY in the Windows environment" }, async () => {
   const root = "fixtures/demo-structured-extraction";
   const docs = ["contract-ambiguous-a.json", "act-ambiguous-1.json"].map(name => JSON.parse(readFileSync(`${root}/${name}`, "utf8")));

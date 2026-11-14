@@ -23,7 +23,8 @@
     "contracts:export": "tsx scripts/write-demo-fixtures.ts && tsx scripts/export-contract-schemas.ts",
     "demo:export": "tsx scripts/write-demo-result.ts",
     "compose:up": "docker compose up --build",
-    "test:polza:full": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-polza-full.ps1"
+    "test:polza:full": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-polza-full.ps1",
+    "live:synthetic-b": "tsx scripts/run-live-synthetic-b.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.8",

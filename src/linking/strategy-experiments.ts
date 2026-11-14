@@ -93,11 +93,12 @@ export async function runLinkingStrategy(strategy: LinkingStrategy, documents: E
   let promptTokens = 0, completionTokens = 0, cost = 0, hasCost = true;
   const invoke = async (label: string, systemPrompt: string, userContent: string, maxTokens = RESPONSE_TOKENS): Promise<any> => {
     if (calls.length >= (options.maxCalls ?? 8)) throw new Error(`Достигнут лимит вызовов эксперимента (${options.maxCalls ?? 8})`);
-    const estimated = approximateTokens(systemPrompt + userContent);
+    const completeSystemPrompt = `${options.systemPrompt.trim()}\n\n--- Strategy stage instructions (the stage-specific JSON shape takes precedence) ---\n${systemPrompt}`;
+    const estimated = approximateTokens(completeSystemPrompt + userContent);
     if (estimated > maxInputTokens) throw new Error(`Запрос ${label} превышает бюджет контекста (${estimated} > ${maxInputTokens}); вход не обрезан`);
     await options.beforeCall?.({ label, estimatedInputTokens: estimated, maxOutputTokens: maxTokens });
     const callStarted = Date.now();
-    const response = await requestPolzaJson({ apiKey: options.apiKey, model: GEMMA_MODEL, timeoutMs: options.timeoutMs, maxTokens, systemPrompt, userContent, onInvalidJsonResponse: async invalid => {
+    const response = await requestPolzaJson({ apiKey: options.apiKey, model: GEMMA_MODEL, timeoutMs: options.timeoutMs, maxTokens, systemPrompt: completeSystemPrompt, userContent, onInvalidJsonResponse: async invalid => {
       promptTokens += invalid.promptTokens; completionTokens += invalid.completionTokens;
       if (invalid.cost === undefined) hasCost = false; else cost += invalid.cost;
       await options.onCall?.({ label, raw_response: { raw_text: invalid.rawText, invalid_json: true }, model: invalid.model, input_tokens: invalid.promptTokens, output_tokens: invalid.completionTokens, ...(invalid.cost !== undefined ? { cost: invalid.cost, currency: invalid.currency ?? "RUB" } : {}), duration_ms: Date.now() - callStarted });

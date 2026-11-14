@@ -1,13 +1,22 @@
 $ErrorActionPreference = 'Stop'
-$apiKey = [Environment]::GetEnvironmentVariable('POLZA_API_KEY', 'Process')
-if (-not $apiKey) { $apiKey = [Environment]::GetEnvironmentVariable('POLZA_AI_API_KEY', 'Process') }
-if (-not $apiKey) { $apiKey = [Environment]::GetEnvironmentVariable('POLZA_API_KEY', 'User') }
-if (-not $apiKey) { $apiKey = [Environment]::GetEnvironmentVariable('POLZA_AI_API_KEY', 'User') }
+$apiKey = $null
+foreach ($scope in @('Process', 'User')) {
+  foreach ($name in @('POLZA_API_KEY', 'POLZA_AI_API_KEY')) {
+    $candidate = [Environment]::GetEnvironmentVariable($name, $scope)
+    if (-not [string]::IsNullOrWhiteSpace($candidate)) { $apiKey = $candidate.Trim(); break }
+  }
+  if ($apiKey) { break }
+}
 if (-not $apiKey) {
   $envPath = Join-Path (Split-Path -Parent $PSScriptRoot) '.env'
   if (Test-Path -LiteralPath $envPath) {
-    $keyLine = Get-Content -LiteralPath $envPath | Where-Object { $_ -match '^POLZA_API_KEY=' } | Select-Object -First 1
-    if ($keyLine) { $apiKey = $keyLine.Substring('POLZA_API_KEY='.Length) }
+    foreach ($name in @('POLZA_API_KEY', 'POLZA_AI_API_KEY')) {
+      $keyLine = Get-Content -LiteralPath $envPath | Where-Object { $_ -match "^$name=" } | Select-Object -First 1
+      if ($keyLine) {
+        $candidate = $keyLine.Substring($name.Length + 1).Trim().Trim('"').Trim("'")
+        if (-not [string]::IsNullOrWhiteSpace($candidate)) { $apiKey = $candidate; break }
+      }
+    }
   }
 }
 if (-not $apiKey) { throw 'Set POLZA_API_KEY or POLZA_AI_API_KEY in the Windows process or user environment.' }

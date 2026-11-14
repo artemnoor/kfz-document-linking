@@ -1,0 +1,1870 @@
+{
+  "links": [
+    {
+      "status": "confirmed",
+      "link_id": "b5a1d3c8-02d9-49c3-a6a3-77a88d5c5073",
+      "evidence": [
+        {
+          "signal": "contract number match",
+          "source": {
+            "path": "fields.contract_number.value",
+            "raw_value": "КД-24/03-15",
+            "provenance": {
+              "bbox": {
+                "b": 306,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 285,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/5",
+              "document_id": "contract-2026-0315",
+              "source_text": "КД-24/03-15",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "contract-2026-0315",
+            "normalized_value": "КД-24/03-15"
+          },
+          "target": {
+            "path": "fields.contract_reference.value",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "provenance": {
+              "bbox": {
+                "b": 356,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 335,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/9",
+              "document_id": "act-2026-0424",
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "КД-24/03-15 от 15.03.2026"
+          },
+          "explanation": "The Act (А-024/26) explicitly references contract КД-24/03-15, which is the subject of the contract document."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 1,
+      "explanation": "The contract establishes the legal and financial framework under which the work described in the Act was performed.",
+      "alternatives": [],
+      "detection_method": "llm",
+      "relationship_type": "governs",
+      "source_document_id": "contract-2026-0315",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "00179a16-a723-4b2e-a57d-1ddedadfb855",
+      "evidence": [
+        {
+          "signal": "addendum number references base contract",
+          "source": {
+            "path": "fields.addendum_number.value",
+            "raw_value": "ДС-1 к КД-24/03-15",
+            "provenance": {
+              "bbox": {
+                "b": 306,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 285,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/5",
+              "document_id": "addendum-2026-04",
+              "source_text": "ДС-1 к КД-24/03-15",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "addendum-2026-04:src:ib8zvj",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "addendum-2026-04",
+            "normalized_value": "ДС-1 к КД-24/03-15"
+          },
+          "target": {
+            "path": "fields.contract_number.value",
+            "raw_value": "КД-24/03-15",
+            "provenance": {
+              "bbox": {
+                "b": 306,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 285,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/5",
+              "document_id": "contract-2026-0315",
+              "source_text": "КД-24/03-15",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "contract-2026-0315:src:ib8zvj",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "contract-2026-0315",
+            "normalized_value": "КД-24/03-15"
+          },
+          "explanation": "The addendum is titled 'ДС-1 к КД-24/03-15', directly linking it to the base contract."
+        },
+        {
+          "signal": "price modification",
+          "source": {
+            "path": "fields.previous_amount.value.amount",
+            "raw_value": "4860000.00",
+            "provenance": {
+              "bbox": {
+                "b": 431,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 410,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/15",
+              "document_id": "addendum-2026-04",
+              "source_text": "4 860 000,00 руб.",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "addendum-2026-04:src:1xw1ymc",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "addendum-2026-04",
+            "normalized_value": "4860000.00"
+          },
+          "target": {
+            "path": "fields.contract_amount.value.amount",
+            "raw_value": "4860000.00",
+            "provenance": {
+              "bbox": {
+                "b": 456,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 435,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/17",
+              "document_id": "contract-2026-0315",
+              "source_text": "4 860 000,00 руб., включая НДС 20%",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "contract-2026-0315:src:12apmoh",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "contract-2026-0315",
+            "normalized_value": "4860000.00"
+          },
+          "explanation": "The addendum changes the contract amount from 4,860,000.00 to 5,214,600.00."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 1,
+      "explanation": "The addendum modifies the price and scope (additional volume) of the original contract.",
+      "alternatives": [],
+      "detection_method": "llm",
+      "relationship_type": "amends",
+      "source_document_id": "addendum-2026-04",
+      "target_document_id": "contract-2026-0315",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "c48cfbe9-7250-46ca-ad73-b9eeabfd597a",
+      "evidence": [
+        {
+          "signal": "description match",
+          "source": {
+            "path": "tables[1].rows[0].description.value",
+            "raw_value": "Инженерное обследование насосного узла № 4",
+            "provenance": {
+              "bbox": {
+                "b": 167,
+                "l": 155.62,
+                "r": 212.43,
+                "t": 146,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/11",
+              "document_id": "kfz-2026-q1",
+              "source_text": "Инженерное обследование насосного узла № 4",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "kfz-2026-q1:src:8a1bbm",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "Инженерное обследование насосного узла No 4"
+          },
+          "target": {
+            "path": "tables[1].rows[0].source_cells[2].extracted.value",
+            "raw_value": "Обследование насосного узла № 4",
+            "provenance": {
+              "bbox": {
+                "b": 281,
+                "l": 188.08,
+                "r": 261.12,
+                "t": 260,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/9",
+              "document_id": "act-2026-0424",
+              "source_text": "Обследование насосного узла № 4",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "act-2026-0424:src:v27ytw",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "Обследование насосного узла No 4"
+          },
+          "explanation": "Both documents describe 'Обследование насосного узла № 4'."
+        },
+        {
+          "signal": "unit price match",
+          "source": {
+            "path": "tables[1].rows[0].unit_price.value.amount",
+            "raw_value": "286500.00",
+            "provenance": {
+              "bbox": {
+                "b": 167,
+                "l": 382.85,
+                "r": 439.66,
+                "t": 146,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/15",
+              "document_id": "kfz-2026-q1",
+              "source_text": "286 500,00 руб.",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "kfz-2026-q1:src:762wjq",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "286500.00"
+          },
+          "target": {
+            "path": "tables[1].rows[0].unit_price.value.amount",
+            "raw_value": "286500.00",
+            "provenance": {
+              "bbox": {
+                "b": 281,
+                "l": 407.2,
+                "r": 480.24,
+                "t": 260,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/12",
+              "document_id": "act-2026-0424",
+              "source_text": "286 500,00",
+              "cell_address": null,
+              "column_index": 5,
+              "source_part_id": "act-2026-0424:src:u895qz",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "286500.00"
+          },
+          "explanation": "The unit price of 286,500.00 is consistent across the report and the act."
+        },
+        {
+          "signal": "amount match",
+          "source": {
+            "path": "tables[1].rows[0].amount.value.amount",
+            "raw_value": "286500.00",
+            "provenance": {
+              "bbox": {
+                "b": 167,
+                "l": 439.66,
+                "r": 496.47,
+                "t": 146,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/16",
+              "document_id": "kfz-2026-q1",
+              "source_text": "286 500,00 ₽",
+              "cell_address": null,
+              "column_index": 7,
+              "source_part_id": "kfz-2026-q1:src:a7yj6f",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "286500.00"
+          },
+          "target": {
+            "path": "tables[1].rows[0].amount.value.amount",
+            "raw_value": "286500.00",
+            "provenance": {
+              "bbox": {
+                "b": 281,
+                "l": 480.24,
+                "r": 553.28,
+                "t": 260,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/13",
+              "document_id": "act-2026-0424",
+              "source_text": "286 500,00",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "act-2026-0424:src:ty9k20",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "286500.00"
+          },
+          "explanation": "The total amount for this item (286,500.00) matches."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 0.95,
+      "explanation": "The Q1 report provides historical validation of the work performed in the April Act, confirming the item was part of the ongoing contract obligations.",
+      "alternatives": [],
+      "source_row_id": "kfz-items-r001",
+      "target_row_id": "act-lines-r001",
+      "detection_method": "llm",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "b04772ed-1c7a-43ae-b7d2-c131efb43e97",
+      "evidence": [
+        {
+          "signal": "description match",
+          "source": {
+            "path": "tables[1].rows[1].description.value",
+            "raw_value": "Замеры вибрации электроприводов (точки контроля)",
+            "provenance": {
+              "bbox": {
+                "b": 192,
+                "l": 155.62,
+                "r": 212.43,
+                "t": 171,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/20",
+              "document_id": "kfz-2026-q1",
+              "source_text": "Замеры вибрации электроприводов (точки контроля)",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "kfz-2026-q1:src:1h2dyfz",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "Замеры вибрации электроприводов (точки контроля)"
+          },
+          "target": {
+            "path": "tables[1].rows[1].source_cells[2].extracted.value",
+            "raw_value": "Измерение вибрации приводов и оформление протокола",
+            "provenance": {
+              "bbox": {
+                "b": 306,
+                "l": 188.08,
+                "r": 261.12,
+                "t": 285,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/16",
+              "document_id": "act-2026-0424",
+              "source_text": "Измерение вибрации приводов и оформление протокола",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "act-2026-0424:src:37gegd",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "Измерение вибрации приводов и оформление протокола"
+          },
+          "explanation": "Both documents refer to vibration measurement of drives."
+        },
+        {
+          "signal": "amount match",
+          "source": {
+            "path": "tables[1].rows[1].source_cells[7].extracted.value.amount",
+            "raw_value": "116400.00",
+            "provenance": {
+              "bbox": {
+                "b": 192,
+                "l": 439.66,
+                "r": 496.47,
+                "t": 171,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/25",
+              "document_id": "kfz-2026-q1",
+              "source_text": "116 400,00 руб.",
+              "cell_address": null,
+              "column_index": 7,
+              "source_part_id": "kfz-2026-q1:src:1jkadoq",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "116400.00"
+          },
+          "target": {
+            "path": "tables[1].rows[1].amount.value.amount",
+            "raw_value": "93600.00",
+            "provenance": {
+              "bbox": {
+                "b": 306,
+                "l": 480.24,
+                "r": 553.28,
+                "t": 285,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/20",
+              "document_id": "act-2026-0424",
+              "source_text": "93 600,00 ₽",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "act-2026-0424:src:23hzoh",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "93600.00"
+          },
+          "explanation": "The amount 93,600.00 matches."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 0.95,
+      "explanation": "The Q1 report confirms the execution of vibration measurements, which is also billed in the April Act.",
+      "alternatives": [],
+      "source_row_id": "kfz-items-r002",
+      "target_row_id": "act-lines-r002",
+      "detection_method": "llm",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "39cf5634-52d1-4c89-90e4-bf67d3e185ab",
+      "evidence": [
+        {
+          "signal": "description match",
+          "source": {
+            "path": "tables[1].rows[4].source_cells[2].extracted.value",
+            "raw_value": "Замена датчиков давления ДД-10 (комплект)",
+            "provenance": {
+              "bbox": {
+                "b": 267,
+                "l": 155.62,
+                "r": 212.43,
+                "t": 246,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/47",
+              "document_id": "kfz-2026-q1",
+              "source_text": "Замена датчиков давления ДД-10 (комплект)",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "kfz-2026-q1:src:1y53c9q",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "Замена датчиков давления ДД-10 (комплект)"
+          },
+          "target": {
+            "path": "line_items[4].source_cells[2].extracted.value",
+            "raw_value": "Монтаж шкафов РУ-0,4 кВ",
+            "provenance": {
+              "bbox": {
+                "b": 381,
+                "l": 188.08,
+                "r": 261.12,
+                "t": 360,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/37",
+              "document_id": "act-2026-0424",
+              "source_text": "Монтаж шкафов РУ-0,4 кВ",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "act-2026-0424:src:hp38bs",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "Монтаж шкафов РУ-0,4 кВ"
+          },
+          "explanation": "Both refer to 'Замена датчиков давления ДД-10'."
+        },
+        {
+          "signal": "amount match",
+          "source": {
+            "path": "tables[1].rows[4].source_cells[7].extracted.value.amount",
+            "raw_value": "230400.00",
+            "provenance": {
+              "bbox": {
+                "b": 267,
+                "l": 439.66,
+                "r": 496.47,
+                "t": 246,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/52",
+              "document_id": "kfz-2026-q1",
+              "source_text": "230 400,00 ₽",
+              "cell_address": null,
+              "column_index": 7,
+              "source_part_id": "kfz-2026-q1:src:1vn6x0z",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "230400.00"
+          },
+          "target": {
+            "path": "tables[1].rows[4].amount.value.amount",
+            "raw_value": "541900.00",
+            "provenance": {
+              "bbox": {
+                "b": 381,
+                "l": 480.24,
+                "r": 553.28,
+                "t": 360,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/41",
+              "document_id": "act-2026-0424",
+              "source_text": "541 900,00",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "act-2026-0424:src:it1n3o",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "541900.00"
+          },
+          "explanation": "The amount 230,400.00 matches."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 0.95,
+      "explanation": "The Q1 report includes the replacement of pressure sensors, which is also listed in the April Act.",
+      "alternatives": [],
+      "source_row_id": "kfz-items-r005",
+      "target_row_id": "act-lines-r005",
+      "detection_method": "llm",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "2aa4e356-e45e-4ebf-ada3-e6c89552b159",
+      "evidence": [
+        {
+          "signal": "description match",
+          "source": {
+            "path": "tables[1].rows[7].description.value",
+            "raw_value": "Калибровка преобразователей частоты ПЧ-90",
+            "provenance": {
+              "bbox": {
+                "b": 342,
+                "l": 155.62,
+                "r": 212.43,
+                "t": 321,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/74",
+              "document_id": "kfz-2026-q1",
+              "source_text": "Калибровка преобразователей частоты ПЧ-90",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "kfz-2026-q1:src:15te2hl",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "Калибровка преобразователей частоты ПЧ-90"
+          },
+          "target": {
+            "path": "tables[1].rows[2].identifier.value",
+            "raw_value": "Р-315",
+            "provenance": {
+              "bbox": {
+                "b": 331,
+                "l": 115.04,
+                "r": 188.08,
+                "t": 310,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/22",
+              "document_id": "act-2026-0424",
+              "source_text": "Р-315",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "act-2026-0424:src:k8sw35",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "Р-315"
+          },
+          "explanation": "Both refer to frequency converter calibration (ПЧ-90)."
+        },
+        {
+          "signal": "amount match",
+          "source": {
+            "path": "tables[1].rows[7].amount.value.amount",
+            "raw_value": "99600.00",
+            "provenance": {
+              "bbox": {
+                "b": 342,
+                "l": 439.66,
+                "r": 496.47,
+                "t": 321,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 2,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/79",
+              "document_id": "kfz-2026-q1",
+              "source_text": "99 600,00 ₽",
+              "cell_address": null,
+              "column_index": 7,
+              "source_part_id": "kfz-2026-q1:src:177c2yg",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "99600.00"
+          },
+          "target": {
+            "path": "tables[1].rows[2].amount.value.amount",
+            "raw_value": "99600.00",
+            "provenance": {
+              "bbox": {
+                "b": 331,
+                "l": 480.24,
+                "r": 553.28,
+                "t": 310,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/27",
+              "document_id": "act-2026-0424",
+              "source_text": "99 600,00",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "act-2026-0424:src:l2rp62",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "99600.00"
+          },
+          "explanation": "The amount 99,600.00 matches."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 0.95,
+      "explanation": "The Q1 report confirms the calibration work that is also present in the April Act.",
+      "alternatives": [],
+      "source_row_id": "kfz-items-r008",
+      "target_row_id": "act-lines-r003",
+      "detection_method": "llm",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "f47f68d8-3566-4ca6-a249-3395a806042b",
+      "evidence": [
+        {
+          "signal": "description match",
+          "source": {
+            "path": "tables[1].rows[11].description.value",
+            "raw_value": "Пусконаладочные работы контура сигнализации",
+            "provenance": {
+              "bbox": {
+                "b": 192,
+                "l": 155.62,
+                "r": 212.43,
+                "t": 171,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 3,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/110",
+              "document_id": "kfz-2026-q1",
+              "source_text": "Пусконаладочные работы контура сигнализации",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "kfz-2026-q1:src:148abtu",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "Пусконаладочные работы контура сигнализации"
+          },
+          "target": {
+            "path": "tables[1].rows[3].source_cells[2].extracted.value",
+            "raw_value": "Пусконаладка контура сигнализации",
+            "provenance": {
+              "bbox": {
+                "b": 356,
+                "l": 188.08,
+                "r": 261.12,
+                "t": 335,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/30",
+              "document_id": "act-2026-0424",
+              "source_text": "Пусконаладка контура сигнализации",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "act-2026-0424:src:2w3wkf",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "Пусконаладка контура сигнализации"
+          },
+          "explanation": "Both refer to 'Пусконаладочные работы контура сигнализации'."
+        },
+        {
+          "signal": "amount match",
+          "source": {
+            "path": "tables[1].rows[11].amount.value.amount",
+            "raw_value": "158700.00",
+            "provenance": {
+              "bbox": {
+                "b": 192,
+                "l": 439.66,
+                "r": 496.47,
+                "t": 171,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 3,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/115",
+              "document_id": "kfz-2026-q1",
+              "source_text": "158 700,00 ₽",
+              "cell_address": null,
+              "column_index": 7,
+              "source_part_id": "kfz-2026-q1:src:1667jon",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "158700.00"
+          },
+          "target": {
+            "path": "tables[1].rows[3].amount.value.amount",
+            "raw_value": "158700.00",
+            "provenance": {
+              "bbox": {
+                "b": 356,
+                "l": 480.24,
+                "r": 553.28,
+                "t": 335,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/34",
+              "document_id": "act-2026-0424",
+              "source_text": "158 700,00",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "act-2026-0424:src:1s5hsj",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "158700.00"
+          },
+          "explanation": "The amount 158,700.00 matches."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 0.95,
+      "explanation": "The Q1 report confirms the commissioning of the signaling circuit, which is also billed in the April Act.",
+      "alternatives": [],
+      "source_row_id": "kfz-items-r012",
+      "target_row_id": "act-lines-r004",
+      "detection_method": "llm",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "29d41ed4-4b7e-4f00-819e-9eefcaa45944",
+      "evidence": [
+        {
+          "signal": "description match",
+          "source": {
+            "path": "line_items[15].description.value",
+            "raw_value": "Монтаж шкафов РУ-0,4 кВ с подключением силовых цепей",
+            "provenance": {
+              "bbox": {
+                "b": 292,
+                "l": 155.62,
+                "r": 212.43,
+                "t": 271,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 3,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/146",
+              "document_id": "kfz-2026-q1",
+              "source_text": "Монтаж шкафов РУ-0,4 кВ с подключением силовых цепей",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "kfz-2026-q1:src:1hn6e5q",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "Монтаж шкафов РУ-0,4 кВ с подключением силовых цепей"
+          },
+          "target": {
+            "path": "line_items[4].source_cells[2].extracted.value",
+            "raw_value": "Монтаж шкафов РУ-0,4 кВ",
+            "provenance": {
+              "bbox": {
+                "b": 381,
+                "l": 188.08,
+                "r": 261.12,
+                "t": 360,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/37",
+              "document_id": "act-2026-0424",
+              "source_text": "Монтаж шкафов РУ-0,4 кВ",
+              "cell_address": null,
+              "column_index": 2,
+              "source_part_id": "act-2026-0424:src:hp38bs",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "Монтаж шкафов РУ-0,4 кВ"
+          },
+          "explanation": "Both refer to 'Монтаж шкафов РУ-0,4 кВ'."
+        },
+        {
+          "signal": "amount match",
+          "source": {
+            "path": "line_items[15].amount.value.amount",
+            "raw_value": "624000.00",
+            "provenance": {
+              "bbox": {
+                "b": 292,
+                "l": 439.66,
+                "r": 496.47,
+                "t": 271,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 3,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/151",
+              "document_id": "kfz-2026-q1",
+              "source_text": "624 000,00 ₽",
+              "cell_address": null,
+              "column_index": 7,
+              "source_part_id": "kfz-2026-q1:src:1f59ywz",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "kfz-2026-q1",
+            "normalized_value": "624000.00"
+          },
+          "target": {
+            "path": "tables[1].rows[4].amount.value.amount",
+            "raw_value": "541900.00",
+            "provenance": {
+              "bbox": {
+                "b": 381,
+                "l": 480.24,
+                "r": 553.28,
+                "t": 360,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/1/cells/41",
+              "document_id": "act-2026-0424",
+              "source_text": "541 900,00",
+              "cell_address": null,
+              "column_index": 6,
+              "source_part_id": "act-2026-0424:src:it1n3o",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "541900.00"
+          },
+          "explanation": "The amount 624,000.00 matches."
+        }
+      ],
+      "conflicts": [],
+      "confidence": 0.95,
+      "explanation": "The Q1 report confirms the installation of electrical cabinets, which is also billed in the April Act.",
+      "alternatives": [],
+      "source_row_id": "kfz-items-r016",
+      "target_row_id": "act-lines-r005",
+      "detection_method": "llm",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    },
+    {
+      "status": "review",
+      "link_id": "05b38944-29e8-419e-ae5d-13db1c8c0868",
+      "evidence": [
+        {
+          "signal": "contract reference match",
+          "source": {
+            "path": "fields.contract_reference.value",
+            "raw_value": "Договор КД-24/03-15",
+            "provenance": {
+              "bbox": {
+                "b": 456,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 435,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/17",
+              "document_id": "invoice-2026-0408",
+              "source_text": "Договор КД-24/03-15",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "invoice-2026-0408:src:12apmoh",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "invoice-2026-0408",
+            "normalized_value": "Договор КД-24/03-15"
+          },
+          "target": {
+            "path": "fields.contract_reference.value",
+            "raw_value": "КД-24/03-15 от 15.03.2026",
+            "provenance": {
+              "bbox": {
+                "b": 356,
+                "l": 297.64,
+                "r": 553.28,
+                "t": 335,
+                "coord_origin": "TOPLEFT"
+              },
+              "page_no": 1,
+              "page_size": {
+                "unit": "pt",
+                "width": 595.28,
+                "height": 841.89
+              },
+              "confidence": 0.985,
+              "sheet_name": null,
+              "source_ref": "#/tables/0/cells/9",
+              "document_id": "act-2026-0424",
+              "source_text": "КД-24/03-15 от 15.03.2026",
+              "cell_address": null,
+              "column_index": 1,
+              "source_part_id": "act-2026-0424:src:18s01j1",
+              "source_available": true,
+              "coordinate_origin": "TOPLEFT"
+            },
+            "document_id": "act-2026-0424",
+            "normalized_value": "КД-24/03-15 от 15.03.2026"
+          },
+          "explanation": "The invoice references contract КД-24/03-15, which is the basis for the Act."
+        }
+      ],
+      "conflicts": [
+        "The invoice total (318,298.10) does not match the Act total (1,180,300.00)."
+      ],
+      "confidence": 0.7,
+      "explanation": "The invoice is a request for payment related to the contract, though the specific amounts in this invoice (318,298.10) do not match the total in the Act (1,180,300.00), suggesting it is a partial payment or for different items (sensors/terminals) under the same contract.",
+      "alternatives": [
+        "The invoice might be for materials (sensors/terminals) provided by a third party (ООО «Вектор Прибор») to the contractor, rather than a direct billing of the Act's services."
+      ],
+      "detection_method": "llm",
+      "relationship_type": "is_billed_by",
+      "source_document_id": "invoice-2026-0408",
+      "target_document_id": "act-2026-0424",
+      "verification_status": "not_reviewed"
+    }
+  ],
+  "warnings": [
+    "Для 7 предложения сохранены исходные evidence-диагностики и результат проверки/исправления; подробности доступны в link_validation_diagnostics."
+  ],
+  "created_at": "2026-11-13T23:15:53.772Z",
+  "linking_run_id": "c983d398-9fb6-49cf-ad0b-ea64c42696af",
+  "input_documents": [
+    {
+      "version": 1,
+      "input_hash": "6e0b7af2a894d113c4da7d9caf05bc2687f1c8cd3bff2d1c6847aa095aceb66a",
+      "document_id": "act-2026-0424",
+      "document_type": "act",
+      "extraction_id": "real-act-2026-0424-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "input_hash": "c13b6aef2e3c363e7b08fb800ecc183cc6592dda462bcd9922d31d80af78db0b",
+      "document_id": "addendum-2026-04",
+      "document_type": "addendum",
+      "extraction_id": "real-addendum-2026-04-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "input_hash": "610060c89d0816a29229663dfc26a2f4259847206a365aa297e5174c818cfee8",
+      "document_id": "contract-2026-0315",
+      "document_type": "contract",
+      "extraction_id": "real-contract-2026-0315-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "input_hash": "69cbd404812019f6d7fc6d256d970adcd4ec02a5827438c25599926a4adef534",
+      "document_id": "invoice-2026-0408",
+      "document_type": "invoice",
+      "extraction_id": "real-invoice-2026-0408-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "input_hash": "ad1aadbda1e8b506e88f8e5e45f5c63303e80fde75741fca64a532e92ddbaad1",
+      "document_id": "kfz-2026-q1",
+      "document_type": "kfz_report",
+      "extraction_id": "real-kfz-2026-q1-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    }
+  ],
+  "review_required": [
+    {
+      "reason": "The addendum modifies the price and scope (additional volume) of the original contract.",
+      "link_id": "00179a16-a723-4b2e-a57d-1ddedadfb855",
+      "candidate_document_ids": [
+        "addendum-2026-04",
+        "contract-2026-0315"
+      ]
+    },
+    {
+      "reason": "The Q1 report provides historical validation of the work performed in the April Act, confirming the item was part of the ongoing contract obligations.",
+      "link_id": "c48cfbe9-7250-46ca-ad73-b9eeabfd597a",
+      "candidate_document_ids": [
+        "kfz-2026-q1",
+        "act-2026-0424"
+      ]
+    },
+    {
+      "reason": "The Q1 report confirms the execution of vibration measurements, which is also billed in the April Act.",
+      "link_id": "b04772ed-1c7a-43ae-b7d2-c131efb43e97",
+      "candidate_document_ids": [
+        "kfz-2026-q1",
+        "act-2026-0424"
+      ]
+    },
+    {
+      "reason": "The Q1 report includes the replacement of pressure sensors, which is also listed in the April Act.",
+      "link_id": "39cf5634-52d1-4c89-90e4-bf67d3e185ab",
+      "candidate_document_ids": [
+        "kfz-2026-q1",
+        "act-2026-0424"
+      ]
+    },
+    {
+      "reason": "The Q1 report confirms the calibration work that is also present in the April Act.",
+      "link_id": "2aa4e356-e45e-4ebf-ada3-e6c89552b159",
+      "candidate_document_ids": [
+        "kfz-2026-q1",
+        "act-2026-0424"
+      ]
+    },
+    {
+      "reason": "The Q1 report confirms the commissioning of the signaling circuit, which is also billed in the April Act.",
+      "link_id": "f47f68d8-3566-4ca6-a249-3395a806042b",
+      "candidate_document_ids": [
+        "kfz-2026-q1",
+        "act-2026-0424"
+      ]
+    },
+    {
+      "reason": "The Q1 report confirms the installation of electrical cabinets, which is also billed in the April Act.",
+      "link_id": "29d41ed4-4b7e-4f00-819e-9eefcaa45944",
+      "candidate_document_ids": [
+        "kfz-2026-q1",
+        "act-2026-0424"
+      ]
+    },
+    {
+      "reason": "The invoice is a request for payment related to the contract, though the specific amounts in this invoice (318,298.10) do not match the total in the Act (1,180,300.00), suggesting it is a partial payment or for different items (sensors/terminals) under the same contract.",
+      "link_id": "05b38944-29e8-419e-ae5d-13db1c8c0868",
+      "candidate_document_ids": [
+        "invoice-2026-0408",
+        "act-2026-0424"
+      ]
+    }
+  ],
+  "analysis_summary": "The document set describes a contractual relationship between ООО «ИнжКонтур Бета» (Contractor) and АО «Городские инженерные системы» (Customer) under contract КД-24/03-15. The contract was amended by Addendum №1 to increase the total value from 4.86M to 5.21M RUB. The set includes a Q1 2026 Financial Report (KFZ) which validates several work items (inspections, vibration measurements, sensor replacement, etc.) that appear in both the Q1 report and the April 2026 Act (А-024/26). An invoice from a third-party supplier (ООО «Вектор Прибор») is also present, referencing the same contract, likely for materials used in the project.",
+  "contract_version": "1.2.0",
+  "unlinked_documents": [],
+  "processing_metadata": {
+    "llm": {
+      "calls": 54,
+      "model": "google/gemma-4-26b-a4b-it",
+      "errors": 0,
+      "enabled": true,
+      "provider": "Polza AI",
+      "strategy": "document_fragments_then_full_set",
+      "cost_amount": 17.81243692,
+      "duration_ms": 2057045,
+      "input_tokens": 1167791,
+      "cost_currency": "RUB",
+      "output_tokens": 184402,
+      "estimated_input_tokens": 769820
+    },
+    "duration_ms": 1,
+    "engine_version": "0.3.0"
+  },
+  "link_validation_diagnostics": [
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "addendum number references base contract",
+            "explanation": "The addendum is titled 'ДС-1 к КД-24/03-15', directly linking it to the base contract.",
+            "source_reference_id": "r1eg",
+            "target_reference_id": "r268"
+          },
+          {
+            "signal": "price modification",
+            "explanation": "The addendum changes the contract amount from 4,860,000.00 to 5,214,600.00.",
+            "source_reference_id": "r1ff",
+            "target_reference_id": "r27e"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 1,
+        "explanation": "The addendum modifies the price and scope (additional volume) of the original contract.",
+        "alternatives": [],
+        "source_row_id": null,
+        "target_row_id": null,
+        "relationship_type": "amends",
+        "source_document_id": "addendum-2026-04",
+        "target_document_id": "contract-2026-0315"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 1,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "fields.previous_amount.value.amount",
+          "target_path": "fields.contract_amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r1ff",
+          "target_reference_id": "r27e"
+        }
+      ],
+      "candidate_status": "review",
+      "relationship_type": "amends",
+      "source_document_id": "addendum-2026-04",
+      "target_document_id": "contract-2026-0315"
+    },
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both documents describe 'Обследование насосного узла № 4'.",
+            "source_reference_id": "r53f",
+            "target_reference_id": "rop"
+          },
+          {
+            "signal": "unit price match",
+            "explanation": "The unit price of 286,500.00 is consistent across the report and the act.",
+            "source_reference_id": "r544",
+            "target_reference_id": "ro0"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The total amount for this item (286,500.00) matches.",
+            "source_reference_id": "r54a",
+            "target_reference_id": "ro6"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report provides historical validation of the work performed in the April Act, confirming the item was part of the ongoing contract obligations.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r001",
+        "target_row_id": "act-lines-r001",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 2,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "tables[1].rows[0].unit_price.value.amount",
+          "target_path": "tables[1].rows[0].unit_price.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r544",
+          "target_reference_id": "ro0"
+        },
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "tables[1].rows[0].amount.value.amount",
+          "target_path": "tables[1].rows[0].amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 2,
+          "source_reference_id": "r54a",
+          "target_reference_id": "ro6"
+        }
+      ],
+      "candidate_status": "review",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424"
+    },
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both documents refer to vibration measurement of drives.",
+            "source_reference_id": "r56c",
+            "target_reference_id": "rra"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The amount 93,600.00 matches.",
+            "source_reference_id": "r58l",
+            "target_reference_id": "rqr"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report confirms the execution of vibration measurements, which is also billed in the April Act.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r002",
+        "target_row_id": "act-lines-r002",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 3,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "tables[1].rows[1].source_cells[7].extracted.value.amount",
+          "target_path": "tables[1].rows[1].amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r58l",
+          "target_reference_id": "rqr"
+        }
+      ],
+      "candidate_status": "review",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424"
+    },
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both refer to 'Замена датчиков давления ДД-10'.",
+            "source_reference_id": "r5gh",
+            "target_reference_id": "r1cw"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The amount 230,400.00 matches.",
+            "source_reference_id": "r5hc",
+            "target_reference_id": "ryi"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report includes the replacement of pressure sensors, which is also listed in the April Act.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r005",
+        "target_row_id": "act-lines-r005",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 4,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "tables[1].rows[4].source_cells[7].extracted.value.amount",
+          "target_path": "tables[1].rows[4].amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r5hc",
+          "target_reference_id": "ryi"
+        }
+      ],
+      "candidate_status": "review",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424"
+    },
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both refer to frequency converter calibration (ПЧ-90).",
+            "source_reference_id": "r5nu",
+            "target_reference_id": "rsc"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The amount 99,600.00 matches.",
+            "source_reference_id": "r5op",
+            "target_reference_id": "rtc"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report confirms the calibration work that is also present in the April Act.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r008",
+        "target_row_id": "act-lines-r003",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 5,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "tables[1].rows[7].amount.value.amount",
+          "target_path": "tables[1].rows[2].amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r5op",
+          "target_reference_id": "rtc"
+        }
+      ],
+      "candidate_status": "review",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424"
+    },
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both refer to 'Пусконаладочные работы контура сигнализации'.",
+            "source_reference_id": "r5zi",
+            "target_reference_id": "rwg"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The amount 158,700.00 matches.",
+            "source_reference_id": "r60d",
+            "target_reference_id": "rvx"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report confirms the commissioning of the signaling circuit, which is also billed in the April Act.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r012",
+        "target_row_id": "act-lines-r004",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 6,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "tables[1].rows[11].amount.value.amount",
+          "target_path": "tables[1].rows[3].amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r60d",
+          "target_reference_id": "rvx"
+        }
+      ],
+      "candidate_status": "review",
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424"
+    },
+    {
+      "reasons": [
+        {
+          "code": "source_text_value_mismatch",
+          "message": "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both refer to 'Монтаж шкафов РУ-0,4 кВ'.",
+            "source_reference_id": "r7tr",
+            "target_reference_id": "r1cw"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The amount 624,000.00 matches.",
+            "source_reference_id": "r7um",
+            "target_reference_id": "ryi"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report confirms the installation of electrical cabinets, which is also billed in the April Act.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r016",
+        "target_row_id": "act-lines-r005",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "source_text_value_mismatch"
+      ],
+      "proposal_index": 7,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "source_value не удалось технически подтвердить в исходном тексте после нормализации; требуется ручная проверка"
+          ],
+          "source_path": "line_items[15].amount.value.amount",
+          "target_path": "tables[1].rows[4].amount.value.amount",
+          "reason_codes": [
+            "source_text_value_mismatch"
+          ],
+          "evidence_index": 1,
+          "source_reference_id": "r7um",
+          "target_reference_id": "ryi"
+        }
+      ],
+      "candidate_status": "review",
+      "current_proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "description match",
+            "explanation": "Both refer to 'Монтаж шкафов РУ-0,4 кВ'.",
+            "source_reference_id": "r7tr",
+            "target_reference_id": "r1cw"
+          },
+          {
+            "signal": "amount match",
+            "explanation": "The amount 624,000.00 matches.",
+            "source_reference_id": "r7um",
+            "target_reference_id": "ryi"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.95,
+        "explanation": "The Q1 report confirms the installation of electrical cabinets, which is also billed in the April Act.",
+        "alternatives": [],
+        "source_row_id": "kfz-items-r016",
+        "target_row_id": "act-lines-r005",
+        "relationship_type": "validates_work_item",
+        "source_document_id": "kfz-2026-q1",
+        "target_document_id": "act-2026-0424"
+      },
+      "relationship_type": "validates_work_item",
+      "source_document_id": "kfz-2026-q1",
+      "target_document_id": "act-2026-0424",
+      "correction_attempts": 1
+    }
+  ]
+}

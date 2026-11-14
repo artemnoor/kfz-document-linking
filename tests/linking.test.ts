@@ -5,7 +5,7 @@ import { linkDocuments } from "../src/linking/link-resolver";
 import { analyzeDocumentSet, GEMMA_MODEL } from "../src/linking/llm-matcher";
 import { validateInput } from "../src/contracts/input";
 import { linkingOutputSchema } from "../src/contracts/output";
-import { buildEvidenceRegistry } from "../src/linking/evidence-registry";
+import { buildEvidenceRegistry, resolveEvidenceReference } from "../src/linking/evidence-registry";
 import { resolveJsonPath } from "../src/linking/evidence-validation";
 
 const systemPrompt = readFileSync("public/prompts/document-linking-system.md", "utf8");
@@ -19,6 +19,16 @@ test("evidence registry indexes arbitrary nested values and inherits row/provena
   const rowCell = refs.find(ref => ref.json_path === "tables[0].rows[0].cells[0].value")!;
   assert.equal(rowCell.row_id, "row-x"); assert.equal(resolveJsonPath(document, rowCell.json_path), rowCell.raw_value);
   assert.equal(refs.find(ref => ref.json_path === "fields.arbitrary.future_metadata.code")?.raw_value, 17);
+});
+test("normalized nested scalars validate against the owning extraction source_value", () => {
+  const document: any = { document_id: "money-doc", fields: { amount: { value: { amount: "286500.00", currency: "RUB" }, source_value: "286 500,00", provenance: { document_id: "money-doc", source_available: true, source_text: "286 500,00" } } } };
+  const reference = buildEvidenceRegistry([document]).find(item => item.json_path === "fields.amount.value.amount")!;
+  assert.equal(reference.raw_value, "286500.00");
+  assert.equal(reference.source_value, "286 500,00");
+  assert.deepEqual(resolveEvidenceReference(reference, "money-doc").warnings, []);
+  document.fields.amount.provenance.source_text = "286 500,0O";
+  const uncertain = buildEvidenceRegistry([document]).find(item => item.json_path === "fields.amount.value.amount")!;
+  assert.ok(resolveEvidenceReference(uncertain, "money-doc").warnings.includes("source_text_value_mismatch"));
 });
 test("complete upstream set is sent as one unfiltered Gemma context", async () => {
   const checked = validateInput(fixtureDocs); assert.equal(checked.success, true);
@@ -48,21 +58,40 @@ test("large complete sets use Gemma document passes before whole-set relationshi
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test("completed Gemma document fragments persist and resume after an interrupted run", async () => {
+test("checkpoint restore skips completed fragments after a real interruption", async () => {
   const docs = ["contract-ambiguous-a.json", "contract-ambiguous-b.json", "act-ambiguous-1.json", "receipt-unknown-1.json"].map(name => JSON.parse(readFileSync(`fixtures/demo-structured-extraction/${name}`, "utf8"))) as any[];
-  const originalFetch = globalThis.fetch; let saved: any, firstCalls = 0;
+  const originalFetch = globalThis.fetch; let saved: any, firstCalls = 0, resumedFragmentCalls = 0, isResume = false;
+  const firstRunFragments: string[] = [], resumedFragments: string[] = [];
   globalThis.fetch = async (_input, init) => {
-    firstCalls++; const request: any = JSON.parse(String(init?.body)), user = request.messages[1].content;
-    if (user.startsWith("{")) { const fragment = JSON.parse(user).document; return new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ fragments: [{ document_id: fragment.document_id, chunk_index: fragment.chunk_index, summary: "checkpoint", facts: [] }] }) } }], usage: { prompt_tokens: 11, completion_tokens: 4 } }), { status: 200 }); }
+    const request: any = JSON.parse(String(init?.body)), user = request.messages[1].content;
+    if (user.startsWith("{")) {
+      const fragment = JSON.parse(user).document, key = `${fragment.document_id}:${fragment.chunk_index}`;
+      if (isResume) { resumedFragmentCalls++; resumedFragments.push(key); } else { firstCalls++; firstRunFragments.push(key); }
+      return new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ fragments: [{ document_id: fragment.document_id, chunk_index: fragment.chunk_index, summary: "checkpoint", facts: [] }] }) } }], usage: { prompt_tokens: 11, completion_tokens: 4 } }), { status: 200 });
+    }
     return new Response(JSON.stringify({ model: GEMMA_MODEL, choices: [{ message: { content: JSON.stringify({ links: [], unlinked_document_ids: docs.map(d => d.document_id), analysis_summary: "done", context_requests: [] }) } }], usage: { prompt_tokens: 5, completion_tokens: 2 } }), { status: 200 });
   };
   try {
-    const options = { apiKey: "test-only", timeoutMs: 1000, maxCalls: 52, maxInputTokens: 1800, systemPrompt: "short" };
-    await analyzeDocumentSet(docs, { ...options, onProgress: async state => { saved = state; } });
-    assert.ok(saved.completed_fragments.length >= docs.length); assert.equal(saved.calls, firstCalls);
-    const callsBeforeResume = firstCalls; let resumed: any;
-    const result = await analyzeDocumentSet(docs, { ...options, resumeProgress: saved, onProgress: async state => { resumed = state; } });
-    assert.equal(firstCalls - callsBeforeResume, 1); assert.equal(result.calls, saved.calls + 1); assert.equal(result.strategy, "document_fragments_then_full_set");
+    const options = { apiKey: "test-only", timeoutMs: 1000, maxCalls: 52, maxInputTokens: 1800, maxModelCallsPerInvocation: 1, systemPrompt: "short" };
+    await assert.rejects(() => analyzeDocumentSet(docs, { ...options, onProgress: async state => {
+      saved = structuredClone(state);
+      if ((state.completed_model_calls?.length ?? 0) > 0 && state.completed_fragments.length === 0) throw new Error("simulated worker interruption after durable model-response checkpoint");
+    } }), /simulated worker interruption/);
+    assert.equal(saved.completed_fragments.length, 0, "the simulated interruption occurs before fragment processing is checkpointed");
+    assert.ok(saved.completed_model_calls.length > 0, "the model response itself is durably checkpointed"); assert.ok(saved.calls >= firstCalls);
+
+    isResume = true;
+    const responseCheckpoint = structuredClone(saved); let resumed: any, result: any;
+    for (let restart = 0; restart < 100; restart++) {
+      result = await analyzeDocumentSet(docs, { ...options, maxInputTokens: 3600, resumeProgress: saved, onProgress: async state => { saved = structuredClone(state); resumed = structuredClone(state); } });
+      if (result.complete) break;
+    }
+    assert.equal(result.complete, true); assert.equal(result.strategy, "document_fragments_then_full_set");
+    assert.equal(resumed.completed_fragments.length, saved.total_fragments);
+    assert.equal(new Set([...firstRunFragments, ...resumedFragments]).size, firstRunFragments.length + resumedFragments.length, `no source fragment is charged twice after restoring the checkpoint: ${JSON.stringify({ firstRunFragments, resumedFragments })}`);
+    const restoredFragmentKeys = responseCheckpoint.completed_model_calls.filter((call: any) => call.label.startsWith("baseline.document-fragment:")).map((call: any) => call.label.slice("baseline.document-fragment:".length));
+    assert.ok(restoredFragmentKeys.length > 0); assert.ok(restoredFragmentKeys.every((key: string) => !resumedFragments.includes(key)));
+    assert.equal(result.calls, responseCheckpoint.calls + resumedFragmentCalls + 1, "restored usage includes only new calls plus the final relationship pass");
   } finally { globalThis.fetch = originalFetch; }
 });
 

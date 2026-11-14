@@ -64,7 +64,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
     apiToken: env.API_BEARER_TOKEN,
     polzaApiKey: env.POLZA_API_KEY ?? env.POLZA_AI_API_KEY,
     llmEnabled: env.LLM_ENABLED !== "false",
-    maxCalls: positiveInteger(env, "LLM_MAX_CALLS_PER_RUN", 52, 1, 52),
+    maxCalls: positiveInteger(env, "LLM_MAX_CALLS_PER_RUN", 52, 1, 56),
     timeoutMs: positiveInteger(env, "LLM_TIMEOUT_MS", 90_000, 1_000, 120_000),
     maxInputTokens: positiveInteger(env, "LLM_MAX_INPUT_TOKENS", 180_000, 1_000, 230_000),
     maxRunMs: positiveInteger(env, "LLM_MAX_RUN_MS", 900_000, 10_000, 900_000),

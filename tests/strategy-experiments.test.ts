@@ -35,6 +35,8 @@ test("strategy B discovers first, selects exact references in a second pass, and
   try {
     const result = await runLinkingStrategy("B", input, base(input));
     assert.equal(mock.count, 2); assert.equal(result.candidates.length, 2); assert.equal(result.links.length, 1);
+    assert.match(mock.requests[0].messages[0].content, /test system prompt/); assert.match(mock.requests[0].messages[0].content, /Strategy stage instructions/);
+    assert.match(mock.requests[0].messages[0].content, /source_row_id\/target_row_id/); assert.match(mock.requests[1].messages[0].content, /test system prompt/);
     assert.equal(result.links[0].evidence[0].source.path, src.json_path); assert.equal(result.links[0].evidence[0].target.path, target.json_path);
     assert.equal(result.diagnostics.length, 1); assert.match(result.diagnostics[0].reason, /invalid|reference/);
   } finally { mock.restore(); }

@@ -1,0 +1,302 @@
+{
+  "links": [],
+  "warnings": [
+    "Для 3 предложения сохранены исходные evidence-диагностики и результат проверки/исправления; подробности доступны в link_validation_diagnostics."
+  ],
+  "created_at": "2026-11-13T22:38:32.357Z",
+  "linking_run_id": "5c605568-5140-433e-9698-cde22e2c19ba",
+  "input_documents": [
+    {
+      "version": 1,
+      "input_hash": "6e0b7af2a894d113c4da7d9caf05bc2687f1c8cd3bff2d1c6847aa095aceb66a",
+      "document_id": "act-2026-0424",
+      "document_type": "act",
+      "extraction_id": "real-act-2026-0424-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "document_id": "contract-ambiguous-a",
+      "document_type": "contract",
+      "extraction_id": "ext-contract-ambiguous-a-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "document_id": "contract-ambiguous-b",
+      "document_type": "contract",
+      "extraction_id": "ext-contract-ambiguous-b-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "document_id": "act-ambiguous-1",
+      "document_type": "act",
+      "extraction_id": "ext-act-ambiguous-1-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    },
+    {
+      "version": 1,
+      "document_id": "receipt-unknown-1",
+      "document_type": "unknown",
+      "extraction_id": "ext-receipt-unknown-v1",
+      "input_version": 1,
+      "schema_version": "1.2.0"
+    }
+  ],
+  "review_required": [],
+  "analysis_summary": "The document set contains one validly structured Act (act-2026-0424) with line items, two ambiguous contract documents (contract-ambiguous-a/b) that differ only by a delimiter in their ID, one ambiguous Act (act-ambiguous-1) that links these contracts, and one unknown receipt. The primary relationship identified is the link between the ambiguous act and the ambiguous contracts, highlighting a potential data quality issue regarding contract numbering formats.",
+  "contract_version": "1.2.0",
+  "unlinked_documents": [
+    {
+      "reason": "Модель не обнаружила подтверждённой связи",
+      "document_id": "act-2026-0424"
+    },
+    {
+      "reason": "Модель не обнаружила подтверждённой связи",
+      "document_id": "receipt-unknown-1"
+    }
+  ],
+  "processing_metadata": {
+    "llm": {
+      "calls": 3,
+      "model": "google/gemma-4-26b-a4b-it",
+      "errors": 0,
+      "enabled": true,
+      "provider": "Polza AI",
+      "strategy": "full_set",
+      "cost_amount": 3.08477683,
+      "duration_ms": 60058,
+      "input_tokens": 300444,
+      "cost_currency": "RUB",
+      "output_tokens": 2484,
+      "estimated_input_tokens": 132773
+    },
+    "duration_ms": 0,
+    "engine_version": "0.3.0"
+  },
+  "link_validation_diagnostics": [
+    {
+      "reasons": [
+        {
+          "code": "provenance_missing",
+          "message": "для значения отсутствует provenance"
+        }
+      ],
+      "proposal": {
+        "status": "proposed",
+        "evidence": [
+          {
+            "signal": "contract reference in act",
+            "explanation": "The act 'act-2026-0424' references contract 'КД-24/03-15 от 15.03.2026', which is a potential match for the contract 'contract-ambiguous-a' (КД-77/11-09) if we consider the ambiguity in the provided set, though the identifiers do not match exactly. However, looking at 'act-ambiguous-1', it explicitly references 'КД-77-11-09', suggesting 'contract-ambiguous-a' and 'contract-ambiguous-b' are the intended targets for these references. The relationship is proposed due to the naming pattern.",
+            "source_reference_id": "r10",
+            "target_reference_id": "r1ec"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.3,
+        "explanation": "The act 'act-2026-0424' contains a contract reference 'КД-24/03-15 от 15.03.2026'. While this does not match the identifier 'КД-77/11-09' in 'contract-ambiguous-a', the presence of 'act-ambiguous-1' which explicitly links to 'КД-77-11-09' suggests a cluster of documents related to a contract with a similar numbering scheme. Without the full contract text, a direct confirmed link is impossible, but they belong to the same logical group of disputed/ambiguous documents.",
+        "alternatives": [
+          {
+            "explanation": "The contract number in 'contract-ambiguous-b' (КД-77-11-09) is a closer structural match to the reference in 'act-ambiguous-1'.",
+            "relationship_type": "references_contract",
+            "source_document_id": "act-2026-0424",
+            "target_document_id": "contract-ambiguous-b"
+          }
+        ],
+        "source_row_id": null,
+        "target_row_id": null,
+        "relationship_type": "references_contract",
+        "source_document_id": "act-2026-0424",
+        "target_document_id": "contract-ambiguous-a"
+      },
+      "resolution": "corrected",
+      "reason_codes": [
+        "provenance_missing"
+      ],
+      "proposal_index": 0,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "для значения отсутствует provenance"
+          ],
+          "source_path": "fields.contract_reference.value",
+          "target_path": "fields.contract_number.value",
+          "reason_codes": [
+            "provenance_missing"
+          ],
+          "evidence_index": 0,
+          "source_reference_id": "r10",
+          "target_reference_id": "r1ec"
+        }
+      ],
+      "relationship_type": "references_contract",
+      "source_document_id": "act-2026-0424",
+      "target_document_id": "contract-ambiguous-a",
+      "correction_attempts": 1
+    },
+    {
+      "reasons": [
+        {
+          "code": "provenance_missing",
+          "message": "для значения отсутствует provenance"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "contract reference match",
+            "explanation": "The act 'act-ambiguous-1' references contract 'КД-77-11-09', which matches the value in 'contract-ambiguous-a' (КД-77/11-09) despite the minor delimiter difference (hyphen vs slash).",
+            "source_reference_id": "r1gb",
+            "target_reference_id": "r1ec"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.9,
+        "explanation": "The act 'act-ambiguous-1' explicitly references the contract number found in 'contract-ambiguous-a'. The difference between 'КД-77-11-09' and 'КД-77/11-09' is treated as a formatting variation of the same identifier.",
+        "alternatives": [
+          {
+            "explanation": "The act 'act-ambiguous-1' references 'КД-77-11-09', which is an exact string match for the value in 'contract-ambiguous-b'.",
+            "relationship_type": "references_contract",
+            "source_document_id": "act-ambiguous-1",
+            "target_document_id": "contract-ambiguous-b"
+          }
+        ],
+        "source_row_id": null,
+        "target_row_id": null,
+        "relationship_type": "references_contract",
+        "source_document_id": "act-ambiguous-1",
+        "target_document_id": "contract-ambiguous-a"
+      },
+      "resolution": "corrected",
+      "reason_codes": [
+        "provenance_missing"
+      ],
+      "proposal_index": 1,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "для значения отсутствует provenance"
+          ],
+          "source_path": "fields.contract_reference.value",
+          "target_path": "fields.contract_number.value",
+          "reason_codes": [
+            "provenance_missing"
+          ],
+          "evidence_index": 0,
+          "source_reference_id": "r1gb",
+          "target_reference_id": "r1ec"
+        }
+      ],
+      "relationship_type": "references_contract",
+      "corrected_proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "contract reference match",
+            "explanation": "The act 'act-ambiguous-1' references contract 'КД-77-11-09', which matches the value in 'contract-ambiguous-a' (КД-77/11-09) despite the minor delimiter difference (hyphen vs slash).",
+            "source_reference_id": "r1gb",
+            "target_reference_id": "r1ec"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 0.9,
+        "explanation": "The act 'act-ambiguous-1' explicitly references the contract number found in 'contract-ambiguous-a'. The difference between 'КД-77-11-09' and 'КД-77/11-09' is treated as a formatting variation of the same identifier.",
+        "alternatives": [
+          {
+            "explanation": "The act 'act-ambiguous-1' references 'КД-77-11-09', which is an exact string match for the value in 'contract-ambiguous-b'.",
+            "relationship_type": "references_contract",
+            "source_document_id": "act-ambiguous-1",
+            "target_document_id": "contract-ambiguous-b"
+          }
+        ],
+        "source_row_id": null,
+        "target_row_id": null,
+        "relationship_type": "references_contract",
+        "source_document_id": "act-ambiguous-1",
+        "target_document_id": "contract-ambiguous-a"
+      },
+      "source_document_id": "act-ambiguous-1",
+      "target_document_id": "contract-ambiguous-a",
+      "correction_attempts": 2
+    },
+    {
+      "reasons": [
+        {
+          "code": "provenance_missing",
+          "message": "для значения отсутствует provenance"
+        }
+      ],
+      "proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "exact contract number match",
+            "explanation": "The contract reference 'КД-77-11-09' in 'act-ambiguous-1' is identical to the contract number in 'contract-ambiguous-b'.",
+            "source_reference_id": "r1gb",
+            "target_reference_id": "r1fa"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 1,
+        "explanation": "Direct string match between the contract reference in the act and the contract number in the contract document.",
+        "alternatives": [],
+        "source_row_id": null,
+        "target_row_id": null,
+        "relationship_type": "references_contract",
+        "source_document_id": "act-ambiguous-1",
+        "target_document_id": "contract-ambiguous-b"
+      },
+      "resolution": "review_required",
+      "reason_codes": [
+        "provenance_missing"
+      ],
+      "proposal_index": 2,
+      "evidence_issues": [
+        {
+          "reasons": [
+            "для значения отсутствует provenance"
+          ],
+          "source_path": "fields.contract_reference.value",
+          "target_path": "fields.contract_number.source_value",
+          "reason_codes": [
+            "provenance_missing"
+          ],
+          "evidence_index": 0,
+          "source_reference_id": "r1gb",
+          "target_reference_id": "r1fa"
+        }
+      ],
+      "candidate_status": "review",
+      "current_proposal": {
+        "status": "confirmed",
+        "evidence": [
+          {
+            "signal": "exact contract number match",
+            "explanation": "The contract reference 'КД-77-11-09' in 'act-ambiguous-1' is identical to the contract number in 'contract-ambiguous-b'.",
+            "source_reference_id": "r1gb",
+            "target_reference_id": "r1fa"
+          }
+        ],
+        "conflicts": [],
+        "confidence": 1,
+        "explanation": "Direct string match between the contract reference in the act and the contract number in the contract document.",
+        "alternatives": [],
+        "source_row_id": null,
+        "target_row_id": null,
+        "relationship_type": "references_contract",
+        "source_document_id": "act-ambiguous-1",
+        "target_document_id": "contract-ambiguous-b"
+      },
+      "relationship_type": "references_contract",
+      "source_document_id": "act-ambiguous-1",
+      "target_document_id": "contract-ambiguous-b",
+      "correction_attempts": 2
+    }
+  ]
+}
